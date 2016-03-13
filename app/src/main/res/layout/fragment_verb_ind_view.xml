@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:layout_weight="1"
+    android:scrollbars="none">
+
+    <TableLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                 xmlns:tools="http://schemas.android.com/tools"
+                 android:layout_width="match_parent"
+                 android:layout_height="wrap_content"
+                 tools:context="com.alaruss.verbs.fragments.VerbViewFragment">
+
+        <TableRow android:layout_width="match_parent">
+
+            <TextView
+                android:id="@+id/verbViewIndPresentTitle"
+                style="@style/TimeTitleView"
+                android:text="@string/indicatiuTitle"/>
+
+            <TextView
+                android:id="@+id/verbViewIndImperfetTitle"
+                style="@style/TimeTitleView"
+                android:text="@string/imperfetTitle"/>
+        </TableRow>
+
+        <TableRow android:layout_width="match_parent">
+
+            <TextView
+                android:id="@+id/verbViewIndPresent"
+                style="@style/TimeTextView"/>
+
+            <TextView
+                android:id="@+id/verbViewIndImperfet"
+                style="@style/TimeTextView"/>
+        </TableRow>
+
+        <TableRow android:layout_width="match_parent">
+
+            <TextView
+                android:id="@+id/verbViewIndFuturTitle"
+                style="@style/TimeTitleView"
+                android:text="@string/futurTitle"/>
+
+            <TextView
+                android:id="@+id/verbViewIndParticipiTitle"
+                style="@style/TimeTitleView"
+                android:text="@string/participiTitle"/>
+        </TableRow>
+
+        <TableRow android:layout_width="match_parent">
+
+            <TextView
+                android:id="@+id/verbViewIndFutur"
+                style="@style/TimeTextView"/>
+
+            <TextView
+                android:id="@+id/verbViewIndParticipi"
+                style="@style/TimeTextView"/>
+        </TableRow>
+
+        <TableRow android:layout_width="match_parent">
+
+            <TextView
+                android:id="@+id/verbViewIndCondicionalTitle"
+                style="@style/TimeTitleView"
+                android:text="@string/condicionalTitle"/>
+
+            <TextView
+                android:id="@+id/verbViewIndGerundiTitle"
+                style="@style/TimeTitleView"
+                android:text="@string/gerundiTitle"/>
+        </TableRow>
+
+        <TableRow android:layout_width="match_parent">
+
+            <TextView
+                android:id="@+id/verbViewIndCondicional"
+                style="@style/TimeTextView"/>
+
+            <TextView
+                android:id="@+id/verbViewIndGerundi"
+                style="@style/TimeTextView"/>
+        </TableRow>
+
+        <TableRow android:layout_width="match_parent">
+
+            <TextView
+                android:id="@+id/verbViewIndPassatSimpleTitle"
+                style="@style/TimeTitleView"
+                android:text="@string/passatSimpleTitle"/>
+
+        </TableRow>
+
+        <TableRow android:layout_width="match_parent">
+
+            <TextView
+                android:id="@+id/verbViewIndPassatSimple"
+                style="@style/TimeTextView"/>
+
+        </TableRow>
+    </TableLayout>
+</ScrollView>
