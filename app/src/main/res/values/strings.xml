@@ -1,0 +1,29 @@
+<resources>
+    <string name="navigation_drawer_open">Open navigation</string>
+    <string name="navigation_drawer_close">Close navigation</string>
+    <string name="EXTRA_ID">ID</string>
+    <string name="EXTRA_QUERY">QUERY</string>
+    <string name="action_settings">Settings</string>
+    <string name="search_title">Search</string>
+    <string name="favorite_title">Favorite</string>
+    <string name="indicatiuTitle">Indicatiu</string>
+    <string name="participiTitle">Participi</string>
+    <string name="imperfetTitle">Imperfet</string>
+    <string name="gerundiTitle">Gerundi</string>
+    <string name="futurTitle">Futur</string>
+    <string name="condicionalTitle">Condicional</string>
+    <string name="imperatiuTitle">Imperatiu</string>
+    <string name="passatSimpleTitle">Passat simple</string>
+    <string name="passatPerifrasticTitle">Passat perifràstic</string>
+    <string name="perfetTitle">Perfet</string>
+    <string name="plusquamperfetTitle">Plusquamperfet</string>
+    <string name="passatAnteriorTitle">Passat anterior</string>
+    <string name="passatAnteriorPerifrasticTitle">Passat anterior perifràstic</string>
+    <string name="futurPerfetTitle">Futur perfet</string>
+    <string name="condicionalPerfetTitle">Condicional perfet</string>
+    <string name="subjuntiuTitle">Subjuntiu</string>
+    <string name="filterHint">cercar</string>
+    <string name="aboutMessage">Per tots problemes - <a href="https://github.com/alaruss/verbs">https://github.com/alaruss/verbs</a>\n\nLlista dels vebs <a href="https://ca.wiktionary.org/wiki/Portada">Viccionari</a>/<a href="http://creativecommons.org/licenses/by/3.0/">CC-BY</a>\n\nNik Larin 2016.</string>
+    <string name="aboutTitle">Sobre</string>
+    <string name="ok">OK</string>
+</resources>

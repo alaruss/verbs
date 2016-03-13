@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:layout_weight="1"
+    android:scrollbars="none">
+
+    <TableLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                 xmlns:tools="http://schemas.android.com/tools"
+                 android:layout_width="match_parent"
+                 android:layout_height="wrap_content"
+                 tools:context="com.alaruss.verbs.fragments.VerbViewFragment">
+
+        <TableRow android:layout_width="match_parent">
+
+            <TextView
+                android:id="@+id/verbViewSubPresentTitle"
+                style="@style/TimeTitleView"
+                android:text="@string/indicatiuTitle"/>
+
+            <TextView
+                android:id="@+id/verbViewSubImperfetTitle"
+                style="@style/TimeTitleView"
+                android:text="@string/imperfetTitle"/>
+        </TableRow>
+
+        <TableRow android:layout_width="match_parent">
+
+            <TextView
+                android:id="@+id/verbViewSubPresent"
+                style="@style/TimeTextView"/>
+
+            <TextView
+                android:id="@+id/verbViewSubImperfet"
+                style="@style/TimeTextView"/>
+        </TableRow>
+
+        <TableRow android:layout_width="match_parent">
+
+            <TextView
+                android:id="@+id/verbViewSubImperatiuTitle"
+                style="@style/TimeTitleView"
+                android:text="@string/imperatiuTitle"/>
+
+        </TableRow>
+
+        <TableRow android:layout_width="match_parent">
+
+            <TextView
+                android:id="@+id/verbViewSubImperatiu"
+                style="@style/TimeTextView"/>
+
+        </TableRow>
+
+    </TableLayout>
+</ScrollView>

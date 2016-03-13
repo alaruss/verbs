@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:layout_weight="1"
+    android:scrollbars="none">
+
+    <TableLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                 xmlns:tools="http://schemas.android.com/tools"
+                 android:layout_width="match_parent"
+                 android:layout_height="wrap_content"
+                 tools:context="com.alaruss.verbs.fragments.VerbViewFragment">
+        <TableRow android:layout_width="match_parent">
+            <TextView
+                android:id="@+id/verbViewComPassatPerifrastiTitle"
+                style="@style/TimeTitleView"
+                android:text="@string/passatPerifrasticTitle"/>
+        </TableRow>
+
+        <TableRow android:layout_width="match_parent">
+            <TextView
+                android:id="@+id/verbViewComPassatPerifrastic"
+                style="@style/TimeTextView"/>
+        </TableRow>
+
+        <TableRow android:layout_width="match_parent">
+            <TextView
+                android:id="@+id/verbViewComPerfetTitle"
+                style="@style/TimeTitleView"
+                android:text="@string/perfetTitle"/>
+        </TableRow>
+        <TableRow android:layout_width="match_parent">
+            <TextView
+                android:id="@+id/verbViewComPerfet"
+                style="@style/TimeTextView"/>
+        </TableRow>
+
+        <TableRow android:layout_width="match_parent">
+            <TextView
+                android:id="@+id/verbViewComPlusquamperfetTitle"
+                style="@style/TimeTitleView"
+                android:text="@string/plusquamperfetTitle"/>
+        </TableRow>
+        <TableRow android:layout_width="match_parent">
+            <TextView
+                android:id="@+id/verbViewComPlusquamperfet"
+                style="@style/TimeTextView"/>
+        </TableRow>
+
+        <TableRow android:layout_width="match_parent">
+            <TextView
+                android:id="@+id/verbViewComPassatAnteriorTitle"
+                style="@style/TimeTitleView"
+                android:text="@string/passatAnteriorTitle"/>
+        </TableRow>
+        <TableRow android:layout_width="match_parent">
+            <TextView
+                android:id="@+id/verbViewComPassatAnterior"
+                style="@style/TimeTextView"/>
+        </TableRow>
+        <TableRow android:layout_width="match_parent">
+            <TextView
+                android:id="@+id/verbViewComPassatAnteriorPerifrasticTitle"
+                style="@style/TimeTitleView"
+                android:text="@string/passatAnteriorPerifrasticTitle"/>
+        </TableRow>
+        <TableRow android:layout_width="match_parent">
+            <TextView
+                android:id="@+id/verbViewComPassatAnteriorPerifrastic"
+                style="@style/TimeTextView"/>
+        </TableRow>
+
+
+        <TableRow android:layout_width="match_parent">
+            <TextView
+                android:id="@+id/verbViewComFuturPerfetTitle"
+                style="@style/TimeTitleView"
+                android:text="@string/futurPerfetTitle"/>
+        </TableRow>
+        <TableRow android:layout_width="match_parent">
+            <TextView
+                android:id="@+id/verbViewComFuturPerfet"
+                style="@style/TimeTextView"/>
+        </TableRow>
+
+
+        <TableRow android:layout_width="match_parent">
+            <TextView
+                android:id="@+id/verbViewComCondicionalPerfetTitle"
+                style="@style/TimeTitleView"
+                android:text="@string/condicionalPerfetTitle"/>
+        </TableRow>
+        <TableRow android:layout_width="match_parent">
+            <TextView
+                android:id="@+id/verbViewComCondicionalPerfet"
+                style="@style/TimeTextView"/>
+        </TableRow>
+
+
+        <TableRow android:layout_width="match_parent">
+            <TextView
+                android:id="@+id/verbViewComSubjuntiu"
+                style="@style/TimeTitleView"
+                android:background="@color/colorBackgroundDarkTitle"
+                android:text="@string/subjuntiuTitle"/>
+        </TableRow>
+
+
+        <TableRow android:layout_width="match_parent">
+            <TextView
+                android:id="@+id/verbViewComSubPassatPerifrastiTitle"
+                style="@style/TimeTitleView"
+                android:text="@string/passatPerifrasticTitle"/>
+        </TableRow>
+
+        <TableRow android:layout_width="match_parent">
+            <TextView
+                android:id="@+id/verbViewComSubPassatPerifrastic"
+                style="@style/TimeTextView"/>
+        </TableRow>
+
+        <TableRow android:layout_width="match_parent">
+            <TextView
+                android:id="@+id/verbViewComSubPerfetTitle"
+                style="@style/TimeTitleView"
+                android:text="@string/perfetTitle"/>
+        </TableRow>
+        <TableRow android:layout_width="match_parent">
+            <TextView
+                android:id="@+id/verbViewComSubPerfet"
+                style="@style/TimeTextView"/>
+        </TableRow>
+
+        <TableRow android:layout_width="match_parent">
+            <TextView
+                android:id="@+id/verbViewComSubPlusquamperfetTitle"
+                style="@style/TimeTitleView"
+                android:text="@string/plusquamperfetTitle"/>
+        </TableRow>
+        <TableRow android:layout_width="match_parent">
+            <TextView
+                android:id="@+id/verbViewComSubPlusquamperfet"
+                style="@style/TimeTextView"/>
+        </TableRow>
+        <TableRow android:layout_width="match_parent">
+            <TextView
+                android:id="@+id/verbViewComSubPassatAnteriorPerifrasticTitle"
+                style="@style/TimeTitleView"
+                android:text="@string/passatAnteriorPerifrasticTitle"/>
+        </TableRow>
+        <TableRow android:layout_width="match_parent">
+            <TextView
+                android:id="@+id/verbViewComSubPassatAnteriorPerifrastic"
+                style="@style/TimeTextView"/>
+        </TableRow>
+    </TableLayout>
+</ScrollView>
