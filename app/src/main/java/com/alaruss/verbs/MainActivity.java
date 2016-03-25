@@ -257,12 +257,14 @@ public class MainActivity extends AppCompatActivity
             fragment = new VerbListFragment();
             isFirstRun = true;
         }
-        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction().
-                replace(R.id.frame_container, fragment, FRAGMENT_LIST_VERB);
-        if (!isFirstRun) {
-            transaction.addToBackStack(null);
+        if (!isFinishing()) {
+            FragmentTransaction transaction = getSupportFragmentManager().beginTransaction().
+                    replace(R.id.frame_container, fragment, FRAGMENT_LIST_VERB);
+            if (!isFirstRun) {
+                transaction.addToBackStack(null);
+            }
+            transaction.commit();
         }
-        transaction.commit();
     }
 
     public void hideKB() {
@@ -292,8 +294,10 @@ public class MainActivity extends AppCompatActivity
             }
         }
         hideKB();
-        getSupportFragmentManager().beginTransaction().replace(R.id.frame_container, fragment, FRAGMENT_VIEW_VERB).
-                addToBackStack(null).commit();
+        if (!isFinishing()) {
+            getSupportFragmentManager().beginTransaction().replace(R.id.frame_container, fragment, FRAGMENT_VIEW_VERB).
+                    addToBackStack(null).commit();
+        }
     }
 
     @Override
