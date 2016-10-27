@@ -23,7 +23,7 @@
     <string name="condicionalPerfetTitle">Condicional perfet</string>
     <string name="subjuntiuTitle">Subjuntiu</string>
     <string name="filterHint">cercar</string>
-    <string name="aboutMessage">Per tots problemes - <a href="https://github.com/alaruss/verbs">https://github.com/alaruss/verbs</a>\n\nLlista dels vebs <a href="https://ca.wiktionary.org/wiki/Portada">Viccionari</a>/<a href="http://creativecommons.org/licenses/by/3.0/">CC-BY</a>\n\nNik Larin 2016.</string>
+    <string name="aboutMessage">Per tots problemes - <a href="https://github.com/alaruss/verbs">https://github.com/alaruss/verbs</a>\n\nLlista dels vebs <a href="https://ca.wiktionary.org/wiki/Portada">Viccionari</a>/<a href="http://creativecommons.org/licenses/by/3.0/">CC-BY</a>\n\nNikita Larin 201.</string>
     <string name="aboutTitle">Sobre</string>
     <string name="ok">OK</string>
 </resources>
