@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <com.alaruss.verbs.MyListPreference
+        android:key="@string/pref_translationLanguage"
+        android:title="@string/pref_translationLanguage_title"
+        android:dialogTitle="@string/pref_translationLanguage_title"
+        android:entries="@array/pref_translationLanguage_entries"
+        android:entryValues="@array/pref_translationLanguage_values"
+        android:defaultValue="@string/pref_translationLanguage_default"/>
+</PreferenceScreen>

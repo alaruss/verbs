@@ -6,9 +6,9 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.Fragment;
@@ -145,6 +145,7 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
         mApp = (MyApplication) getApplication();
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -153,17 +154,7 @@ public class MainActivity extends AppCompatActivity
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         mDrawerToggle = new ActionBarDrawerToggle(
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
-//        {
-//
-//            public void onDrawerClosed(View view) {
-////                setActionBarArrowDependingOnFragmentsBackStack();
-//            }
-//
-//            public void onDrawerOpened(View drawerView) {
-//                Log.d(LOG_TAG, "set:" + true );
-//                mDrawerToggle.setDrawerIndicatorEnabled(true);
-//            }
-//        };
+
         mDrawerToggle.setToolbarNavigationClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -259,18 +250,13 @@ public class MainActivity extends AppCompatActivity
         } else if (id == R.id.nav_share) {
             Intent intent = new Intent(Intent.ACTION_SEND);
             intent.setType("text/plain");
-            intent.putExtra(Intent.EXTRA_TEXT, "Conjugació dels verbs catalans: http://play.google.com/store/apps/details?id=com.alaruss.verbs");
+            intent.putExtra(Intent.EXTRA_TEXT, getString(R.string.share_text));
             if (intent.resolveActivity(getPackageManager()) != null) {
                 startActivity(intent);
             }
-        } else if (id == R.id.nav_send) {
-            Intent intent = new Intent(Intent.ACTION_SENDTO);
-            intent.setData(Uri.parse("mailto:"));
-            intent.putExtra(Intent.EXTRA_EMAIL, new String[]{"verbs@alaruss.com"});
-//            intent.putExtra(Intent.EXTRA_SUBJECT, "Hola");
-            if (intent.resolveActivity(getPackageManager()) != null) {
-                startActivity(intent);
-            }
+        } else if (id == R.id.nav_preferences) {
+            Intent intent = new Intent(this, SettingsActivity.class);
+            startActivity(intent);
         }
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -345,10 +331,5 @@ public class MainActivity extends AppCompatActivity
         mApp.getDBHelper().open();
         super.onResume();
     }
-//
-//    @Override
-//    protected void onPause() {
-//        mApp.getDBHelper().close();
-//        super.onPause();
-//    }
+
 }
