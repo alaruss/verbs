@@ -3,16 +3,16 @@
 
     <group>
         <item
+            android:id="@+id/nav_preferences"
+            android:icon="@drawable/ic_menu_nav_preferences"
+            android:title="@string/nav_preferences"/>
+        <item
             android:id="@+id/nav_about"
             android:icon="@drawable/ic_menu_about"
-            android:title="Cerca"/>
+            android:title="@string/nav_about"/>
         <item
             android:id="@+id/nav_share"
             android:icon="@drawable/ic_menu_share"
-            android:title="Share"/>
-        <item
-            android:id="@+id/nav_send"
-            android:icon="@drawable/ic_menu_send"
-            android:title="Contactar"/>
+            android:title="@string/nav_share"/>
     </group>
 </menu>
