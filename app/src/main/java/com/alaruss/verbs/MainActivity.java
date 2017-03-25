@@ -4,7 +4,6 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
@@ -21,10 +20,7 @@ import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.text.Html;
-import android.text.SpannableString;
 import android.text.method.LinkMovementMethod;
-import android.text.util.Linkify;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -43,30 +39,27 @@ public class MainActivity extends AppCompatActivity
     private final String FRAGMENT_LIST_VERB = "fragment_verb_list";
     private final String FRAGMENT_VIEW_VERB = "fragment_verb_view";
     private final String VERB_ID = "verb_id";
+    private final String PREF_FIRST_RUN = "first_run";
+    private final String PREF_DATA_MIGRATION = "data_migration";
     private MyApplication mApp;
 
-    private class FillDbTask extends AsyncTask<Void, Integer, Void> implements VerbDAO.ImportProgressCallback {
+
+    ActionBarDrawerToggle mDrawerToggle;
+
+
+    private abstract class MigrationDbTask extends AsyncTask<Void, Integer, Void> implements VerbDAO.ImportProgressCallback {
         ProgressDialog mProgressDialog;
+
+        abstract public int getMigrationNumber();
 
         protected void onPreExecute() {
             super.onPreExecute();
             mProgressDialog = new ProgressDialog(MainActivity.this);
             mProgressDialog.setMax(100);
-            mProgressDialog.setMessage("Its just one time...");
-            mProgressDialog.setTitle("Loading DB");
+            mProgressDialog.setTitle("Updating data...");
             mProgressDialog.setProgress(0);
             mProgressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
             mProgressDialog.show();
-        }
-
-        @SuppressLint("CommitPrefEdits")
-        @Override
-        protected Void doInBackground(Void... params) {
-            VerbDAO verbDAO = mApp.getDBHelper().getVerbDAO();
-            SharedPreferences prefs = getSharedPreferences("com.alaruss.verbs", Activity.MODE_PRIVATE);
-            verbDAO.importVerbs(mApp, this);
-            prefs.edit().putBoolean("first_run", false).commit();
-            return null;
         }
 
         public void onProgress(Integer progress) {
@@ -77,15 +70,42 @@ public class MainActivity extends AppCompatActivity
             mProgressDialog.setProgress(progress[0]);
         }
 
+        @SuppressLint("ApplySharedPref")
         @Override
         protected void onPostExecute(Void result) {
             super.onPostExecute(result);
+            SharedPreferences prefs = getSharedPreferences("com.alaruss.verbs", Activity.MODE_PRIVATE);
+            prefs.edit().putInt(PREF_DATA_MIGRATION, this.getMigrationNumber()).commit();
             mProgressDialog.dismiss();
-            showList();
+            migrateDataAndStart();
         }
     }
 
-    ActionBarDrawerToggle mDrawerToggle;
+    private class MigrationDB1 extends MigrationDbTask {
+        public int getMigrationNumber() {
+            return 2;
+        }
+
+        @Override
+        protected Void doInBackground(Void... params) {
+            VerbDAO verbDAO = mApp.getDBHelper().getVerbDAO();
+            verbDAO.dataMigration01(mApp, this);
+            return null;
+        }
+    }
+
+    private class MigrationDB2 extends MigrationDbTask {
+        public int getMigrationNumber() {
+            return 2;
+        }
+
+        @Override
+        protected Void doInBackground(Void... params) {
+            VerbDAO verbDAO = mApp.getDBHelper().getVerbDAO();
+            verbDAO.dataMigration02(mApp, this);
+            return null;
+        }
+    }
 
     private FragmentManager.OnBackStackChangedListener
             mOnBackStackChangedListener = new FragmentManager.OnBackStackChangedListener() {
@@ -163,9 +183,19 @@ public class MainActivity extends AppCompatActivity
                 return;
             }
         }
+        migrateDataAndStart();
+    }
+
+    private void migrateDataAndStart() {
         SharedPreferences prefs = getSharedPreferences("com.alaruss.verbs", Activity.MODE_PRIVATE);
-        if (prefs.getBoolean("first_run", true)) {
-            new FillDbTask().execute();
+        int lastMigration = prefs.getInt(PREF_DATA_MIGRATION, 0);
+        if (lastMigration == 0 && !prefs.getBoolean(PREF_FIRST_RUN, true)) {
+            lastMigration = 1;
+        }
+        if (lastMigration == 0) {
+            new MigrationDB1().execute();
+        } else if (lastMigration == 1) {
+            new MigrationDB2().execute();
         } else {
             showList();
         }
@@ -225,7 +255,7 @@ public class MainActivity extends AppCompatActivity
                     .setMessage(R.string.aboutMessage)
                     .create();
             d.show();
-            ((TextView)d.findViewById(android.R.id.message)).setMovementMethod(LinkMovementMethod.getInstance());
+            ((TextView) d.findViewById(android.R.id.message)).setMovementMethod(LinkMovementMethod.getInstance());
         } else if (id == R.id.nav_share) {
             Intent intent = new Intent(Intent.ACTION_SEND);
             intent.setType("text/plain");

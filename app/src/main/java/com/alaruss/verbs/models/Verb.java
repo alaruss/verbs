@@ -8,6 +8,8 @@ public class Verb {
     private int id;
     private String infinitive;
     private String data;
+    private String translationEn;
+    private String translationEs;
     private Date lastAccess;
     private boolean isFavorite;
 
@@ -192,6 +194,14 @@ public class Verb {
         this.parseData();
     }
 
+    public void setTranslationEn(String translation) {
+        this.translationEn = translation;
+    }
+
+    public void setTranslationEs(String translation) {
+        this.translationEs = translation;
+    }
+
     public void parseData() {
         if (data == null) {
             return;
@@ -218,6 +228,22 @@ public class Verb {
         comSubPerfet = new TiempoCompost("hagi,hagis,hagi,hàgim,hàgiu,hagin", participi[0]);
         comSubPlusquamperfet = new TiempoCompost("hagués,haguessis,hagués,haguéssim,haguéssiu,haguessin", participi[0]);
         comSubPassaAnteriorPerifrastic = new TiempoCompost("vagi haver,vagis haver,vagi haver,vàgim haver,vàgiu haver,vagin haver", participi[0]);
+    }
+
+    public String getTranslationEn() {
+        if (this.translationEn == null) {
+            return "";
+        } else {
+            return this.translationEn;
+        }
+    }
+
+    public String getTranslationEs() {
+        if (this.translationEs == null) {
+            return "";
+        } else {
+            return this.translationEs;
+        }
     }
 
     public String getData() {
