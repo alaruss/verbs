@@ -1,18 +1,26 @@
 package com.alaruss.verbs.fragments;
 
 import android.app.Activity;
+import android.content.DialogInterface;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
+import android.support.v7.app.AlertDialog;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.alaruss.verbs.MyApplication;
 import com.alaruss.verbs.R;
@@ -23,6 +31,7 @@ import com.alaruss.verbs.models.Verb;
 public class VerbViewFragment extends Fragment {
     Verb mVerb;
     VerbViewFragmentListener mListener;
+    private TextView mTranslateView;
 
     public VerbViewFragment() {
     }
@@ -37,6 +46,7 @@ public class VerbViewFragment extends Fragment {
     public void onResume() {
         super.onResume();
         getActivity().setTitle(mVerb.getInfinitive());
+//        mTranslateView.setText(getTranslationText());
     }
 
     @Override
@@ -73,12 +83,76 @@ public class VerbViewFragment extends Fragment {
         ViewPager viewPager = (ViewPager) view.findViewById(R.id.tab_pager);
         viewPager.setAdapter(new SectionPagerAdapter());
         tabLayout.setupWithViewPager(viewPager);
+        mTranslateView = (TextView) view.findViewById(R.id.translation_text);
+        mTranslateView.setText(getTranslationText());
+        mTranslateView.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                int action = event.getAction();
+                if (action == MotionEvent.ACTION_DOWN) {
+                    int leftEdgeOfRightDrawable = mTranslateView.getRight() - mTranslateView.getTotalPaddingRight();
+                    if (event.getRawX() >= leftEdgeOfRightDrawable) {
+
+                        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+                        LayoutInflater inflater = getActivity().getLayoutInflater();
+                        View dialogView = inflater.inflate(R.layout.dialog_translation_edit, null);
+                        final EditText translationEdit = (EditText) dialogView.findViewById(R.id.translation_edit);
+                        final String currentTranslation = getTranslationText();
+                        translationEdit.setText(currentTranslation);
+                        translationEdit.setSelection(currentTranslation.length());
+                        builder.setView(dialogView)
+                                .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+                                    public void onClick(DialogInterface dialog, int id) {
+                                        String newTranslation = translationEdit.getText().toString();
+                                        if (!newTranslation.equals(currentTranslation)) {
+                                            setTranslationText(newTranslation);
+                                        }
+                                    }
+                                });
+                        builder.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                // Nothing to do
+                            }
+                        });
+                        AlertDialog dialog = builder.create();
+                        dialog.show();
+
+
+                        return true;
+                    }
+                }
+                return false;
+            }
+        });
         return view;
     }
 
-    public class SectionPagerAdapter extends PagerAdapter {
+    private String getTranslationText() {
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(getActivity());
+        String translationLanguage = sharedPref.getString(getString(R.string.pref_translationLanguage), getString(R.string.pref_translationLanguage_default));
+        String translation;
+        if (translationLanguage.equals("en")) {
+            translation = mVerb.getTranslationEn();
+        } else {
+            translation = mVerb.getTranslationEs();
+        }
+        return translation;
+    }
 
-        public SectionPagerAdapter() {
+    private void setTranslationText(String text) {
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(getActivity());
+        String translationLanguage = sharedPref.getString(getString(R.string.pref_translationLanguage), getString(R.string.pref_translationLanguage_default));
+        if (translationLanguage.equals("en")) {
+            ((MyApplication) getActivity().getApplication()).getDBHelper().getVerbDAO().setTranslationEn(mVerb, text);
+        } else {
+            ((MyApplication) getActivity().getApplication()).getDBHelper().getVerbDAO().setTranslationEs(mVerb, text);
+        }
+        mTranslateView.setText(text);
+    }
+
+    private class SectionPagerAdapter extends PagerAdapter {
+
+        SectionPagerAdapter() {
             super();
         }
 
@@ -164,9 +238,9 @@ public class VerbViewFragment extends Fragment {
         searchItem.setVisible(true);
         MenuItem favoriteItem = menu.findItem(R.id.action_favorite);
         if (mVerb.isFavorite()) {
-            favoriteItem.setIcon(android.R.drawable.star_big_on);
+            favoriteItem.setIcon(R.drawable.ic_star);
         } else {
-            favoriteItem.setIcon(android.R.drawable.star_big_off);
+            favoriteItem.setIcon(R.drawable.ic_star_inactive);
         }
         favoriteItem.setVisible(true);
     }
@@ -177,9 +251,9 @@ public class VerbViewFragment extends Fragment {
         if (id == R.id.action_favorite) {
             ((MyApplication) getActivity().getApplication()).getDBHelper().getVerbDAO().setFavorite(mVerb, !mVerb.isFavorite());
             if (mVerb.isFavorite()) {
-                item.setIcon(android.R.drawable.star_big_on);
+                item.setIcon(R.drawable.ic_star_inactive);
             } else {
-                item.setIcon(android.R.drawable.star_big_off);
+                item.setIcon(R.drawable.ic_star);
             }
             return true;
         }

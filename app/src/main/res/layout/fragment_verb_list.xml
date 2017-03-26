@@ -10,10 +10,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="@string/filterHint"
-        android:drawableLeft="@android:drawable/ic_menu_search"
-        android:drawableStart="@android:drawable/ic_menu_search"
-        android:drawableRight="@android:drawable/ic_delete"
-        android:drawableEnd="@android:drawable/ic_delete"
+        android:drawableLeft="@drawable/ic_search_edit_text"
+        android:drawableRight="@drawable/ic_close_inactive"
         android:gravity="center"/>
 
     <ListView

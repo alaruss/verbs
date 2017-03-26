@@ -95,6 +95,20 @@ public class VerbDAO {
         mDB.update(TABLE, values, COLUMN_ID + " = " + verb.getId(), null);
     }
 
+    public void setTranslationEn(Verb verb, String text) {
+        verb.setTranslationEn(text);
+        ContentValues values = new ContentValues();
+        values.put(COLUMN_TRANS_EN, text);
+        mDB.update(TABLE, values, COLUMN_ID + " = " + verb.getId(), null);
+    }
+
+    public void setTranslationEs(Verb verb, String text) {
+        verb.setTranslationEs(text);
+        ContentValues values = new ContentValues();
+        values.put(COLUMN_TRANS_ES, text);
+        mDB.update(TABLE, values, COLUMN_ID + " = " + verb.getId(), null);
+    }
+
     private Verb cursorToVerb(Cursor cursor) {
         Verb verb = new Verb();
         verb.setId(cursor.getInt(0));
