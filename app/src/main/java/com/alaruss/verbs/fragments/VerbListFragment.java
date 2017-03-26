@@ -217,6 +217,17 @@ public class VerbListFragment extends Fragment implements AbsListView.OnItemClic
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
+                if (s.length()>0) {
+                    mSearchETView.setCompoundDrawablesWithIntrinsicBounds(
+                            R.drawable.ic_search_edit_text, 0,
+                            R.drawable.ic_close_active, 0
+                    );
+                } else {
+                    mSearchETView.setCompoundDrawablesWithIntrinsicBounds(
+                            R.drawable.ic_search_edit_text, 0,
+                            R.drawable.ic_close_inactive, 0
+                    );
+                }
                 mAdapter.getFilter().filter(s);
             }
 
@@ -226,10 +237,7 @@ public class VerbListFragment extends Fragment implements AbsListView.OnItemClic
             }
         });
         mSearchETView.setOnTouchListener(new View.OnTouchListener() {
-            final int DRAWABLE_LEFT = 0;
-            final int DRAWABLE_TOP = 1;
             final int DRAWABLE_RIGHT = 2;
-            final int DRAWABLE_BOTTOM = 3;
 
             @Override
             public boolean onTouch(View v, MotionEvent event) {

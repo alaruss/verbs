@@ -26,6 +26,7 @@
     <string name="aboutMessage">Per tots problemes - <a href="https://github.com/alaruss/verbs">https://github.com/alaruss/verbs</a>\n\nLlista dels vebs <a href="https://ca.wiktionary.org/wiki/Portada">Viccionari</a>/<a href="http://creativecommons.org/licenses/by/3.0/">CC-BY</a>\n\nNikita Larin 2017.</string>
     <string name="aboutTitle">Sobre</string>
     <string name="ok">OK</string>
+    <string name="cancel">Cancel·lar</string>
     <string name="pref_translationLanguage">pref_translationLanguage</string>
     <string name="pref_translationLanguage_title">Idioma de tradicció</string>
     <string name="pref_translationLanguage_default">es</string>
@@ -38,4 +39,5 @@
 
     <string name="share_text">Conjugació dels verbs catalans: http://play.google.com/store/apps/details?id=com.alaruss.verbs</string>
     <string name="ddd">pref_translationLanguage</string>
+    <string name="translation_edit_title">Canvi la traducció</string>
 </resources>
