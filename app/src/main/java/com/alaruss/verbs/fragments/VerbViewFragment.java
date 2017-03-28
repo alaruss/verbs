@@ -258,9 +258,9 @@ public class VerbViewFragment extends Fragment {
         if (id == R.id.action_favorite) {
             ((MyApplication) getActivity().getApplication()).getDBHelper().getVerbDAO().setFavorite(mVerb, !mVerb.isFavorite());
             if (mVerb.isFavorite()) {
-                item.setIcon(starInactiveDrawable);
-            } else {
                 item.setIcon(starDrawable);
+            } else {
+                item.setIcon(starInactiveDrawable);
             }
             return true;
         }

@@ -2,11 +2,13 @@ package com.alaruss.verbs.models;
 
 import android.text.TextUtils;
 
+import java.text.Normalizer;
 import java.util.Date;
 
 public class Verb {
     private int id;
     private String infinitive;
+    private String infinitiveWODiacritics;
     private String data;
     private String translationEn;
     private String translationEs;
@@ -169,12 +171,19 @@ public class Verb {
         }
     }
 
+    private static String stripDiacritics(String str) {
+        str = Normalizer.normalize(str, Normalizer.Form.NFD);
+        str = str.replaceAll("[\\p{InCombiningDiacriticalMarks}]", "");
+        return str;
+    }
+
     public int getId() {
         return id;
     }
 
     public void setInfinitive(String s) {
         this.infinitive = s;
+        this.infinitiveWODiacritics = stripDiacritics(s);
     }
 
     public void setId(int id) {
@@ -187,6 +196,10 @@ public class Verb {
 
     public String getInfinitive() {
         return infinitive;
+    }
+
+    public boolean containsWord(String s) {
+        return this.infinitiveWODiacritics.startsWith(s);
     }
 
     public void setData(String data) {
