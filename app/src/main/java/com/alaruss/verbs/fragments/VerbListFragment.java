@@ -2,6 +2,7 @@ package com.alaruss.verbs.fragments;
 
 import android.app.Activity;
 import android.content.Context;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.text.Editable;
@@ -42,8 +43,18 @@ public class VerbListFragment extends Fragment implements AbsListView.OnItemClic
     private String filterQuery;
     private VerbDAO mVerbDAO;
     private boolean needRefreshFavorite = false;
+    private int searchDrawable, closeActiveDrawable, closeInactiveDrawable;
 
     public VerbListFragment() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            searchDrawable = R.drawable.ic_search_edit_text;
+            closeActiveDrawable = R.drawable.ic_close_active;
+            closeInactiveDrawable = R.drawable.ic_close_inactive;
+        } else {
+            searchDrawable = android.R.drawable.ic_menu_search;
+            closeActiveDrawable = android.R.drawable.ic_delete;
+            closeInactiveDrawable = android.R.drawable.ic_delete;
+        }
     }
 
     @Override
@@ -217,15 +228,15 @@ public class VerbListFragment extends Fragment implements AbsListView.OnItemClic
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-                if (s.length()>0) {
+                if (s.length() > 0) {
                     mSearchETView.setCompoundDrawablesWithIntrinsicBounds(
-                            R.drawable.ic_search_edit_text, 0,
-                            R.drawable.ic_close_active, 0
+                            searchDrawable, 0,
+                            closeActiveDrawable, 0
                     );
                 } else {
                     mSearchETView.setCompoundDrawablesWithIntrinsicBounds(
-                            R.drawable.ic_search_edit_text, 0,
-                            R.drawable.ic_close_inactive, 0
+                            searchDrawable, 0,
+                            closeInactiveDrawable, 0
                     );
                 }
                 mAdapter.getFilter().filter(s);
