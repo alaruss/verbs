@@ -29,7 +29,7 @@ import com.alaruss.verbs.db.VerbDAO;
 import com.alaruss.verbs.models.Verb;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 
 
@@ -77,6 +77,17 @@ public class VerbListFragment extends Fragment implements AbsListView.OnItemClic
             mInflater = LayoutInflater.from(mContext);
         }
 
+        public void updateFavorites(HashSet<Integer> favorites) {
+            for (Verb verb : mAdapter.getAllVerbs()) {
+                boolean isFavorite = favorites.contains(verb.getId());
+                if (verb.isFavorite() != isFavorite) {
+                    verb.setFavorite(isFavorite);
+                }
+            }
+            notifyDataSetChanged();
+            getFilter().filter(mSearchETView.getText());
+        }
+
 
         public void setVerbs(List<Verb> Verbs) {
             mAllVerbs = Verbs;
@@ -113,8 +124,6 @@ public class VerbListFragment extends Fragment implements AbsListView.OnItemClic
             }
 
             text = (TextView) convertView.getTag(R.id.titleTextView);
-            //get the current item and set the text
-//            Verb item = (Verb) getItem(position);
             Verb item = (Verb) getItem(position);
             text.setText(item.getInfinitive());
 
@@ -140,7 +149,7 @@ public class VerbListFragment extends Fragment implements AbsListView.OnItemClic
                 List<Verb> filteredResult = new ArrayList<>();
                 if (constraint != null && constraint.length() > 0) {
                     for (Verb i : mAllVerbs) {
-                        if (i.getInfinitive().startsWith((String) constraint)) {
+                        if (i.containsWord((String) constraint)) {
                             filteredResult.add(i);
                         }
                     }
@@ -175,18 +184,12 @@ public class VerbListFragment extends Fragment implements AbsListView.OnItemClic
 
     void refreshFavorites() {
         if (needRefreshFavorite) {
-            HashMap<Integer, Verb> favorites = new HashMap<>();
+            HashSet<Integer> favorites = new HashSet<>();
             for (Verb verb : mVerbDAO.getFavoritesVerbs()) {
-                favorites.put(verb.getId(), verb);
-            }
-            for (Verb verb : mAdapter.getAllVerbs()) {
-                boolean isFavorite = favorites.containsKey(verb.getId());
-                if (verb.isFavorite() != isFavorite) {
-                    verb.setFavorite(isFavorite);
-                }
+                favorites.add(verb.getId());
             }
             needRefreshFavorite = false;
-            mAdapter.notifyDataSetChanged();
+            mAdapter.updateFavorites(favorites);
         }
     }
 
