@@ -3,6 +3,7 @@ package com.alaruss.verbs.fragments;
 import android.app.Activity;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
+import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.design.widget.TabLayout;
@@ -10,7 +11,6 @@ import android.support.v4.app.Fragment;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AlertDialog;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -20,7 +20,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.alaruss.verbs.MyApplication;
 import com.alaruss.verbs.R;
@@ -32,8 +31,16 @@ public class VerbViewFragment extends Fragment {
     Verb mVerb;
     VerbViewFragmentListener mListener;
     private TextView mTranslateView;
+    private int starDrawable, starInactiveDrawable;
 
     public VerbViewFragment() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            starDrawable = R.drawable.ic_star;
+            starInactiveDrawable = R.drawable.ic_star_inactive;
+        } else {
+            starDrawable = android.R.drawable.star_big_on;
+            starInactiveDrawable = android.R.drawable.star_big_off;
+        }
     }
 
 
@@ -238,9 +245,9 @@ public class VerbViewFragment extends Fragment {
         searchItem.setVisible(true);
         MenuItem favoriteItem = menu.findItem(R.id.action_favorite);
         if (mVerb.isFavorite()) {
-            favoriteItem.setIcon(R.drawable.ic_star);
+            favoriteItem.setIcon(starDrawable);
         } else {
-            favoriteItem.setIcon(R.drawable.ic_star_inactive);
+            favoriteItem.setIcon(starInactiveDrawable);
         }
         favoriteItem.setVisible(true);
     }
@@ -251,9 +258,9 @@ public class VerbViewFragment extends Fragment {
         if (id == R.id.action_favorite) {
             ((MyApplication) getActivity().getApplication()).getDBHelper().getVerbDAO().setFavorite(mVerb, !mVerb.isFavorite());
             if (mVerb.isFavorite()) {
-                item.setIcon(R.drawable.ic_star_inactive);
+                item.setIcon(starInactiveDrawable);
             } else {
-                item.setIcon(R.drawable.ic_star);
+                item.setIcon(starDrawable);
             }
             return true;
         }
