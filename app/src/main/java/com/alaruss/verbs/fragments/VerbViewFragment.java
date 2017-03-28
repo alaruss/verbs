@@ -95,9 +95,12 @@ public class VerbViewFragment extends Fragment {
         mTranslateView.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
+                final int DRAWABLE_RIGHT = 2;
                 int action = event.getAction();
+
                 if (action == MotionEvent.ACTION_DOWN) {
-                    int leftEdgeOfRightDrawable = mTranslateView.getRight() - mTranslateView.getTotalPaddingRight();
+                    int leftEdgeOfRightDrawable = mTranslateView.getRight()
+                            - mTranslateView.getCompoundDrawables()[DRAWABLE_RIGHT].getBounds().width();
                     if (event.getRawX() >= leftEdgeOfRightDrawable) {
 
                         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
