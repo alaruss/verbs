@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -14,6 +15,7 @@ import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.EditorInfo;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.BaseAdapter;
@@ -251,6 +253,7 @@ public class VerbListFragment extends Fragment implements AbsListView.OnItemClic
             }
         });
         mSearchETView.setOnTouchListener(new View.OnTouchListener() {
+            final int DRAWABLE_LEFT = 0;
             final int DRAWABLE_RIGHT = 2;
 
             @Override
@@ -258,12 +261,29 @@ public class VerbListFragment extends Fragment implements AbsListView.OnItemClic
                 if (event.getAction() == MotionEvent.ACTION_UP) {
                     int leftEdgeOfRightDrawable = mSearchETView.getRight()
                             - mSearchETView.getCompoundDrawables()[DRAWABLE_RIGHT].getBounds().width();
-                    // when EditBox has padding, adjust leftEdge like
-                    // leftEdgeOfRightDrawable -= getResources().getDimension(R.dimen.edittext_padding_left_right);
+                    int rightEdgeOfLeftDrawable = mSearchETView.getLeft()
+                            + mSearchETView.getCompoundDrawables()[DRAWABLE_LEFT].getBounds().width();
                     if (event.getRawX() >= leftEdgeOfRightDrawable) {
                         mSearchETView.setText("");
                         return true;
+                    } else if (event.getRawX() <= rightEdgeOfLeftDrawable) {
+                        if (mSearchETView.getText().length()>0 && mAdapter.getCount()>0) {
+                            onVerbSelected(0);
+                        }
+                        return true;
                     }
+                }
+                return false;
+            }
+        });
+        mSearchETView.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+            @Override
+            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+                if (actionId == EditorInfo.IME_ACTION_SEARCH) {
+                    if (mAdapter.getCount() > 0) {
+                        onVerbSelected(0);
+                    }
+                    return true;
                 }
                 return false;
             }
@@ -289,13 +309,17 @@ public class VerbListFragment extends Fragment implements AbsListView.OnItemClic
         mListener = null;
     }
 
-    @Override
-    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+    private void onVerbSelected(int position) {
         if (null != mListener) {
-            Verb verb = (Verb) parent.getItemAtPosition(position);
+            Verb verb = (Verb) mAdapter.getItem(position);
             needRefreshFavorite = true;
             mListener.onVerbListSelected(verb.getId());
         }
+    }
+
+    @Override
+    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+        onVerbSelected(position);
     }
 
     public interface VerbListFragmentListener {
