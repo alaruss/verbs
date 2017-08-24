@@ -12,19 +12,20 @@ apply plugin: 'io.fabric'
 
 repositories {
     maven { url 'https://maven.fabric.io/public' }
+    maven { url 'https://maven.google.com' }
 }
 
 
 android {
-    compileSdkVersion 25
-    buildToolsVersion '25.0.2'
+    compileSdkVersion 26
+    buildToolsVersion '26.0.1'
 
     defaultConfig {
         applicationId "com.alaruss.verbs"
-        minSdkVersion 9
-        targetSdkVersion 25
-        versionCode 8
-        versionName "1.5.0"
+        minSdkVersion 14
+        targetSdkVersion 26
+        versionCode 9
+        versionName "1.5.1"
         vectorDrawables.useSupportLibrary = true
     }
     buildTypes {
@@ -44,12 +45,16 @@ android {
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
-    compile('com.crashlytics.sdk.android:crashlytics:2.6.7@aar') {
+    compile('com.crashlytics.sdk.android:crashlytics:2.6.8@aar') {
         transitive = true;
     }
-    compile 'com.android.support:appcompat-v7:25.3.1'
-    compile 'com.android.support:design:25.3.1'
-    compile 'com.android.support:support-v4:25.3.1'
-    compile 'com.android.support:support-vector-drawable:25.3.1'
+    compile 'com.android.support:appcompat-v7:26.0.1'
+    compile 'com.android.support:design:26.0.1'
+    compile 'com.android.support:support-compat:26.0.1'
+    compile 'com.android.support:support-core-utils:26.0.1'
+    compile 'com.android.support:support-core-ui:26.0.1'
+    compile 'com.android.support:support-media-compat:26.0.1'
+    compile 'com.android.support:support-fragment:26.0.1'
+    compile 'com.android.support:support-vector-drawable:26.0.1'
     testCompile 'junit:junit:4.12'
 }
