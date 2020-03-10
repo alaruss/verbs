@@ -52,6 +52,8 @@ public class VerbViewFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
+        int a;
+        a = 1/0;
         getActivity().setTitle(mVerb.getInfinitive());
 //        mTranslateView.setText(getTranslationText());
     }
