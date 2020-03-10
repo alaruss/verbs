@@ -30,6 +30,7 @@ import android.widget.TextView;
 import com.alaruss.verbs.db.VerbDAO;
 import com.alaruss.verbs.fragments.VerbListFragment;
 import com.alaruss.verbs.fragments.VerbViewFragment;
+import com.google.firebase.analytics.FirebaseAnalytics;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, VerbListFragment.VerbListFragmentListener,
@@ -42,6 +43,7 @@ public class MainActivity extends AppCompatActivity
     private final String PREF_FIRST_RUN = "first_run";
     private final String PREF_DATA_MIGRATION = "data_migration";
     private MyApplication mApp;
+    private FirebaseAnalytics mFirebaseAnalytics;
 
 
     ActionBarDrawerToggle mDrawerToggle;
@@ -145,6 +147,7 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        mFirebaseAnalytics = FirebaseAnalytics.getInstance(this);
         PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
         mApp = (MyApplication) getApplication();
         setContentView(R.layout.activity_main);

@@ -38,10 +38,6 @@
             </intent-filter>
         </activity>
 
-        <meta-data
-            android:name="io.fabric.ApiKey"
-            android:value="aec5db207540823940061215487cfc13df4caf42" />
-
         <activity
             android:name=".SettingsActivity"
             android:label="@string/title_activity_settings">
