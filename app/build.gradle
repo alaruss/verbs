@@ -1,6 +1,6 @@
 apply plugin: 'com.android.application'
 apply plugin: 'com.google.gms.google-services'
-// apply plugin: 'com.google.firebase.crashlytics'
+apply plugin: 'com.google.firebase.crashlytics'
 
 repositories {
     maven { url 'https://maven.google.com' }
@@ -17,7 +17,7 @@ android {
         compileSdk 34
         applicationId "com.alaruss.verbs"
         minSdkVersion 21
-        targetSdkVersion 33
+        targetSdkVersion 34
         versionCode 11
         versionName "1.5.3"
         vectorDrawables.useSupportLibrary = true
