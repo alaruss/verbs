@@ -17,7 +17,7 @@ android {
         compileSdk 34
         applicationId "com.alaruss.verbs"
         minSdkVersion 21
-        targetSdkVersion 29
+        targetSdkVersion 33
         versionCode 11
         versionName "1.5.3"
         vectorDrawables.useSupportLibrary = true
