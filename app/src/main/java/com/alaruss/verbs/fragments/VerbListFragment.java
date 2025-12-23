@@ -64,8 +64,12 @@ public class VerbListFragment extends Fragment implements AbsListView.OnItemClic
         super.onCreateOptionsMenu(menu, inflater);
         MenuItem searchItem = menu.findItem(R.id.action_search);
         MenuItem favoriteItem = menu.findItem(R.id.action_favorite);
-        searchItem.setVisible(false);
-        favoriteItem.setVisible(false);
+        if (searchItem != null) {
+            searchItem.setVisible(false);
+        }
+        if (favoriteItem != null ){
+            favoriteItem.setVisible(false);
+        }
     }
 
     private class VerbListAdapter extends BaseAdapter implements Filterable {
