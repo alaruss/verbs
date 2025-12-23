@@ -31,6 +31,7 @@ import com.alaruss.verbs.db.VerbDAO;
 import com.alaruss.verbs.fragments.VerbListFragment;
 import com.alaruss.verbs.fragments.VerbViewFragment;
 import com.google.firebase.analytics.FirebaseAnalytics;
+import com.google.firebase.crashlytics.FirebaseCrashlytics;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, VerbListFragment.VerbListFragmentListener,
@@ -40,7 +41,6 @@ public class MainActivity extends AppCompatActivity
     private final String FRAGMENT_LIST_VERB = "fragment_verb_list";
     private final String FRAGMENT_VIEW_VERB = "fragment_verb_view";
     private final String VERB_ID = "verb_id";
-    private final String PREF_FIRST_RUN = "first_run";
     private final String PREF_DATA_MIGRATION = "data_migration";
     private MyApplication mApp;
     private FirebaseAnalytics mFirebaseAnalytics;
@@ -76,8 +76,8 @@ public class MainActivity extends AppCompatActivity
         @Override
         protected void onPostExecute(Void result) {
             super.onPostExecute(result);
-            SharedPreferences prefs = getSharedPreferences("com.alaruss.verbs", Activity.MODE_PRIVATE);
-            prefs.edit().putInt(PREF_DATA_MIGRATION, this.getMigrationNumber()).commit();
+            SharedPreferences prefs = getSharedPreferences(getPackageName(), Activity.MODE_PRIVATE);
+            prefs.edit().putInt(PREF_DATA_MIGRATION, this.getMigrationNumber()).apply();
             mProgressDialog.dismiss();
             migrateDataAndStart();
         }
@@ -181,19 +181,39 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void migrateDataAndStart() {
-        SharedPreferences prefs = getSharedPreferences("com.alaruss.verbs", Activity.MODE_PRIVATE);
-        int lastMigration = prefs.getInt(PREF_DATA_MIGRATION, 0);
-        if (lastMigration == 0 && !prefs.getBoolean(PREF_FIRST_RUN, true)) {
-            lastMigration = 1;
-        }
-        if (lastMigration == 0) {
-            new MigrationDB1().execute();
-        } else if (lastMigration == 1) {
-            new MigrationDB2().execute();
-        } else {
+        try {
+            // Get package info to determine install/update status
+            android.content.pm.PackageInfo packageInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
+            long firstInstallTime = packageInfo.firstInstallTime;
+            long lastUpdateTime = packageInfo.lastUpdateTime;
+            boolean isFirstRun = firstInstallTime == lastUpdateTime;
+
+            SharedPreferences prefs = getSharedPreferences(getPackageName(), Activity.MODE_PRIVATE);
+            int lastMigration = prefs.getInt(PREF_DATA_MIGRATION, 0);
+
+            if (lastMigration == 0 && !isFirstRun) {
+                lastMigration = 1;
+            }
+
+            if (lastMigration == 0) {
+                // This is a fresh install. Run the first migration.
+                new MigrationDB1().execute();
+            } else if (lastMigration == 1) {
+                // The app was updated and the last migration was #1, so run #2.
+                new MigrationDB2().execute();
+            } else {
+                // All migrations are complete, show the main list.
+                showList();
+            }
+
+        } catch (Exception e) {
+            // This should realistically never happen for your own package.
+            FirebaseCrashlytics.getInstance().recordException(e);
+
             showList();
         }
     }
+
 
     @Override
     public void onSaveInstanceState(@NonNull Bundle outState) {
