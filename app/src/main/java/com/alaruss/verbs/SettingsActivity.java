@@ -44,5 +44,12 @@ public class SettingsActivity extends AppCompatActivity {
         public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
             setPreferencesFromResource(R.xml.preferences, rootKey);
         }
+
+        @Override
+        public void onViewCreated(@androidx.annotation.NonNull android.view.View view, Bundle savedInstanceState) {
+            super.onViewCreated(view, savedInstanceState);
+            setDivider(new android.graphics.drawable.ColorDrawable(getResources().getColor(R.color.colorBackgroundDarkTitle)));
+            setDividerHeight(1);
+        }
     }
 }
