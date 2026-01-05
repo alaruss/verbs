@@ -5,6 +5,7 @@ import android.os.Build;
 import android.os.Bundle;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import android.text.Editable;
@@ -111,6 +112,10 @@ public class VerbListFragment extends Fragment {
             onVerbSelected(position);
         });
         recyclerView.setAdapter(mAdapter);
+
+        // Add divider between items
+        DividerItemDecoration divider = new DividerItemDecoration(getContext(), LinearLayoutManager.VERTICAL);
+        recyclerView.addItemDecoration(divider);
 
         // Observe filtered verbs from ViewModel
         viewModel.getFilteredVerbs().observe(getViewLifecycleOwner(), verbs -> {
