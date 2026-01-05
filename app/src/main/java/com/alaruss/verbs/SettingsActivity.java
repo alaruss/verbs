@@ -1,120 +1,48 @@
 package com.alaruss.verbs;
 
-import android.content.res.Configuration;
 import android.os.Bundle;
-import android.preference.PreferenceActivity;
-import androidx.annotation.LayoutRes;
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.ActionBar;
-import androidx.appcompat.app.AppCompatDelegate;
-import androidx.appcompat.widget.Toolbar;
-import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.view.View;
-import android.view.ViewGroup;
 
-public class SettingsActivity extends PreferenceActivity {
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+import androidx.preference.PreferenceFragmentCompat;
 
-    private AppCompatDelegate mDelegate;
+public class SettingsActivity extends AppCompatActivity {
 
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_settings);
+
+        Toolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+            getSupportActionBar().setHomeButtonEnabled(true);
+        }
+
+        if (savedInstanceState == null) {
+            getSupportFragmentManager()
+                    .beginTransaction()
+                    .replace(R.id.settings_container, new SettingsFragment())
+                    .commit();
+        }
+    }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case android.R.id.home:
-                this.finish();
-                return true;
+        if (item.getItemId() == android.R.id.home) {
+            finish();
+            return true;
         }
         return super.onOptionsItemSelected(item);
     }
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        getDelegate().installViewFactory();
-        getDelegate().onCreate(savedInstanceState);
-        super.onCreate(savedInstanceState);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        getSupportActionBar().setHomeButtonEnabled(true);
-        addPreferencesFromResource(R.xml.preferences);
-    }
-
-    @Override
-    protected void onPostCreate(Bundle savedInstanceState) {
-        super.onPostCreate(savedInstanceState);
-        getDelegate().onPostCreate(savedInstanceState);
-    }
-
-    public ActionBar getSupportActionBar() {
-        return getDelegate().getSupportActionBar();
-    }
-
-    public void setSupportActionBar(@Nullable Toolbar toolbar) {
-        getDelegate().setSupportActionBar(toolbar);
-    }
-
-    @Override
-    public MenuInflater getMenuInflater() {
-        return getDelegate().getMenuInflater();
-    }
-
-    @Override
-    public void setContentView(@LayoutRes int layoutResID) {
-        getDelegate().setContentView(layoutResID);
-    }
-
-    @Override
-    public void setContentView(View view) {
-        getDelegate().setContentView(view);
-    }
-
-    @Override
-    public void setContentView(View view, ViewGroup.LayoutParams params) {
-        getDelegate().setContentView(view, params);
-    }
-
-    @Override
-    public void addContentView(View view, ViewGroup.LayoutParams params) {
-        getDelegate().addContentView(view, params);
-    }
-
-    @Override
-    protected void onPostResume() {
-        super.onPostResume();
-        getDelegate().onPostResume();
-    }
-
-    @Override
-    protected void onTitleChanged(CharSequence title, int color) {
-        super.onTitleChanged(title, color);
-        getDelegate().setTitle(title);
-    }
-
-    @Override
-    public void onConfigurationChanged(Configuration newConfig) {
-        super.onConfigurationChanged(newConfig);
-        getDelegate().onConfigurationChanged(newConfig);
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
-        getDelegate().onStop();
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        getDelegate().onDestroy();
-    }
-
-    public void invalidateOptionsMenu() {
-        getDelegate().invalidateOptionsMenu();
-    }
-
-    private AppCompatDelegate getDelegate() {
-        if (mDelegate == null) {
-            mDelegate = AppCompatDelegate.create(this, null);
+    public static class SettingsFragment extends PreferenceFragmentCompat {
+        @Override
+        public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
+            setPreferencesFromResource(R.xml.preferences, rootKey);
         }
-        return mDelegate;
     }
 }

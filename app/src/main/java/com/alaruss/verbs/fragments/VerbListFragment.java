@@ -1,10 +1,12 @@
 package com.alaruss.verbs.fragments;
 
 import android.app.Activity;
-import android.content.Context;
 import android.os.Build;
 import android.os.Bundle;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.KeyEvent;
@@ -16,35 +18,29 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
-import android.widget.AbsListView;
-import android.widget.AdapterView;
-import android.widget.BaseAdapter;
 import android.widget.EditText;
-import android.widget.Filter;
-import android.widget.Filterable;
-import android.widget.ListView;
 import android.widget.TextView;
 
 import com.alaruss.verbs.MyApplication;
 import com.alaruss.verbs.R;
+import com.alaruss.verbs.adapters.VerbRecyclerAdapter;
+import com.alaruss.verbs.databinding.FragmentVerbListBinding;
 import com.alaruss.verbs.db.VerbDAO;
 import com.alaruss.verbs.models.Verb;
+import com.alaruss.verbs.viewmodels.VerbListViewModel;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 
 
-public class VerbListFragment extends Fragment implements AbsListView.OnItemClickListener {
+public class VerbListFragment extends Fragment {
     private VerbListFragmentListener mListener;
 
-    private AbsListView mListView;
-    private EditText mSearchETView;
-
-    private VerbListAdapter mAdapter;
+    private FragmentVerbListBinding binding;
+    private VerbRecyclerAdapter mAdapter;
     private String filterQuery;
     private VerbDAO mVerbDAO;
-    private boolean needRefreshFavorite = false;
+    private VerbListViewModel viewModel;
     private int searchDrawable, closeActiveDrawable, closeInactiveDrawable;
 
     public VerbListFragment() {
@@ -72,131 +68,12 @@ public class VerbListFragment extends Fragment implements AbsListView.OnItemClic
         }
     }
 
-    private class VerbListAdapter extends BaseAdapter implements Filterable {
-        private Context mContext;
-        private LayoutInflater mInflater = null;
-        private List<Verb> mAllVerbs;
-        private List<Verb> mFilteredVerbs;
-
-        public VerbListAdapter(Context context) {
-            mContext = context;
-            mInflater = LayoutInflater.from(mContext);
-        }
-
-        public void updateFavorites(HashSet<Integer> favorites) {
-            for (Verb verb : mAdapter.getAllVerbs()) {
-                boolean isFavorite = favorites.contains(verb.getId());
-                if (verb.isFavorite() != isFavorite) {
-                    verb.setFavorite(isFavorite);
-                }
-            }
-            notifyDataSetChanged();
-            getFilter().filter(mSearchETView.getText());
-        }
-
-
-        public void setVerbs(List<Verb> Verbs) {
-            mAllVerbs = Verbs;
-            mFilteredVerbs = Verbs;
-        }
-
-        public List<Verb> getAllVerbs() {
-            return mAllVerbs;
-        }
-
-        @Override
-        public int getCount() {
-            return mFilteredVerbs != null ? mFilteredVerbs.size() : 0;
-        }
-
-        @Override
-        public Object getItem(int position) {
-            return mFilteredVerbs.get(position);
-        }
-
-        @Override
-        public long getItemId(int position) {
-            Verb Verb = (Verb) getItem(position);
-            return Verb.getId();
-        }
-
-        @Override
-        public View getView(int position, View convertView, ViewGroup parent) {
-            TextView text;
-
-            if (convertView == null) {
-                convertView = mInflater.inflate(R.layout.verb_list_item, parent, false);
-                convertView.setTag(R.id.titleTextView, convertView.findViewById(R.id.titleTextView));
-            }
-
-            text = (TextView) convertView.getTag(R.id.titleTextView);
-            Verb item = (Verb) getItem(position);
-            text.setText(item.getInfinitive());
-
-            return convertView;
-        }
-
-        private ValueFilter mValueFilter;
-
-        @Override
-        public Filter getFilter() {
-            if (mValueFilter == null) {
-
-                mValueFilter = new ValueFilter();
-            }
-
-            return mValueFilter;
-        }
-
-        private class ValueFilter extends Filter {
-            @Override
-            protected FilterResults performFiltering(CharSequence constraint) {
-                FilterResults results = new FilterResults();
-                List<Verb> filteredResult = new ArrayList<>();
-                if (constraint != null && constraint.length() > 0) {
-                    for (Verb i : mAllVerbs) {
-                        if (i.containsWord((String) constraint)) {
-                            filteredResult.add(i);
-                        }
-                    }
-                } else {
-                    for (Verb i : mAllVerbs) {
-                        if (i.isFavorite()) {
-                            filteredResult.add(i);
-                        }
-                    }
-                }
-                results.count = filteredResult.size();
-                results.values = filteredResult;
-                return results;
-            }
-
-            @SuppressWarnings("unchecked")
-            @Override
-            protected void publishResults(CharSequence constraint, FilterResults results) {
-                mFilteredVerbs = (List<Verb>) results.values;
-                notifyDataSetChanged();
-            }
-        }
-
-    }
 
     @Override
     public void onResume() {
         super.onResume();
         getActivity().setTitle(R.string.app_name);
-        refreshFavorites();
-    }
-
-    void refreshFavorites() {
-        if (needRefreshFavorite) {
-            HashSet<Integer> favorites = new HashSet<>();
-            for (Verb verb : mVerbDAO.getFavoritesVerbs()) {
-                favorites.add(verb.getId());
-            }
-            needRefreshFavorite = false;
-            mAdapter.updateFavorites(favorites);
-        }
+        // Favorites refresh is now handled automatically by LiveData
     }
 
     @Override
@@ -208,27 +85,40 @@ public class VerbListFragment extends Fragment implements AbsListView.OnItemClic
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
-        mAdapter = new VerbListAdapter(getActivity());
         mVerbDAO = ((MyApplication) getActivity().getApplication()).getDBHelper().getVerbDAO();
         filterQuery = getArguments() != null ? getArguments().getString(getString(R.string.EXTRA_QUERY)) : null;
-        mAdapter.setVerbs(mVerbDAO.getAllVerbs());
-        mAdapter.getFilter().filter(filterQuery);
+
+        // Initialize ViewModel
+        viewModel = new ViewModelProvider(this).get(VerbListViewModel.class);
+        if (filterQuery != null) {
+            viewModel.setSearchQuery(filterQuery);
+        }
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_verb_list, container, false);
+        binding = FragmentVerbListBinding.inflate(inflater, container, false);
 
-        // Set the adapter
-        mListView = (AbsListView) view.findViewById(android.R.id.list);
-        ((ListView) mListView).setAdapter(mAdapter);
+        // Set up RecyclerView (binding.list is actually a RecyclerView now)
+        RecyclerView recyclerView = (RecyclerView) binding.list;
+        recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+        recyclerView.setHasFixedSize(true);
+        recyclerView.setVerticalScrollBarEnabled(true);
 
-        // Set OnItemClickListener so we can be notified on item clicks
-        mListView.setOnItemClickListener(this);
+        // Initialize adapter with click listener
+        mAdapter = new VerbRecyclerAdapter((verb, position) -> {
+            onVerbSelected(position);
+        });
+        recyclerView.setAdapter(mAdapter);
 
-        mSearchETView = (EditText) view.findViewById(R.id.searchList);
-        mSearchETView.addTextChangedListener(new TextWatcher() {
+        // Observe filtered verbs from ViewModel
+        viewModel.getFilteredVerbs().observe(getViewLifecycleOwner(), verbs -> {
+            if (verbs != null) {
+                mAdapter.setVerbs(verbs);
+            }
+        });
+        binding.searchList.addTextChangedListener(new TextWatcher() {
 
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
@@ -238,17 +128,18 @@ public class VerbListFragment extends Fragment implements AbsListView.OnItemClic
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 if (s.length() > 0) {
-                    mSearchETView.setCompoundDrawablesWithIntrinsicBounds(
+                    binding.searchList.setCompoundDrawablesWithIntrinsicBounds(
                             searchDrawable, 0,
                             closeActiveDrawable, 0
                     );
                 } else {
-                    mSearchETView.setCompoundDrawablesWithIntrinsicBounds(
+                    binding.searchList.setCompoundDrawablesWithIntrinsicBounds(
                             searchDrawable, 0,
                             closeInactiveDrawable, 0
                     );
                 }
-                mAdapter.getFilter().filter(s);
+                // Use ViewModel for filtering instead of adapter
+                viewModel.setSearchQuery(s.toString());
             }
 
             @Override
@@ -256,22 +147,22 @@ public class VerbListFragment extends Fragment implements AbsListView.OnItemClic
 
             }
         });
-        mSearchETView.setOnTouchListener(new View.OnTouchListener() {
+        binding.searchList.setOnTouchListener(new View.OnTouchListener() {
             final int DRAWABLE_LEFT = 0;
             final int DRAWABLE_RIGHT = 2;
 
             @Override
             public boolean onTouch(View v, MotionEvent event) {
                 if (event.getAction() == MotionEvent.ACTION_UP) {
-                    int leftEdgeOfRightDrawable = mSearchETView.getRight()
-                            - mSearchETView.getCompoundDrawables()[DRAWABLE_RIGHT].getBounds().width();
-                    int rightEdgeOfLeftDrawable = mSearchETView.getLeft()
-                            + mSearchETView.getCompoundDrawables()[DRAWABLE_LEFT].getBounds().width();
+                    int leftEdgeOfRightDrawable = binding.searchList.getRight()
+                            - binding.searchList.getCompoundDrawables()[DRAWABLE_RIGHT].getBounds().width();
+                    int rightEdgeOfLeftDrawable = binding.searchList.getLeft()
+                            + binding.searchList.getCompoundDrawables()[DRAWABLE_LEFT].getBounds().width();
                     if (event.getRawX() >= leftEdgeOfRightDrawable) {
-                        mSearchETView.setText("");
+                        binding.searchList.setText("");
                         return true;
                     } else if (event.getRawX() <= rightEdgeOfLeftDrawable) {
-                        if (mSearchETView.getText().length()>0 && mAdapter.getCount()>0) {
+                        if (binding.searchList.getText().length()>0 && mAdapter.getItemCount()>0) {
                             onVerbSelected(0);
                         }
                         return true;
@@ -280,11 +171,11 @@ public class VerbListFragment extends Fragment implements AbsListView.OnItemClic
                 return false;
             }
         });
-        mSearchETView.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+        binding.searchList.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
-            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+            public boolean onEditorAction( TextView v, int actionId, KeyEvent event) {
                 if (actionId == EditorInfo.IME_ACTION_SEARCH) {
-                    if (mAdapter.getCount() > 0) {
+                    if (mAdapter.getItemCount() > 0) {
                         onVerbSelected(0);
                     }
                     return true;
@@ -292,8 +183,14 @@ public class VerbListFragment extends Fragment implements AbsListView.OnItemClic
                 return false;
             }
         });
-        mSearchETView.requestFocus();
-        return view;
+        binding.searchList.requestFocus();
+        return binding.getRoot();
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        binding = null;
     }
 
     @Override
@@ -314,16 +211,10 @@ public class VerbListFragment extends Fragment implements AbsListView.OnItemClic
     }
 
     private void onVerbSelected(int position) {
-        if (null != mListener) {
-            Verb verb = (Verb) mAdapter.getItem(position);
-            needRefreshFavorite = true;
+        if (null != mListener && mAdapter.getVerbs().size() > position) {
+            Verb verb = mAdapter.getVerbs().get(position);
             mListener.onVerbListSelected(verb.getId());
         }
-    }
-
-    @Override
-    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        onVerbSelected(position);
     }
 
     public interface VerbListFragmentListener {

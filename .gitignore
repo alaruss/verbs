@@ -72,3 +72,5 @@ proguard/
 
 # JIRA plugin
 atlassian-ide-plugin.xml
+
+.claude

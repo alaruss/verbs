@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.preference.PreferenceManager;
 import com.google.android.material.tabs.TabLayout;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.viewpager.widget.PagerAdapter;
 import androidx.viewpager.widget.ViewPager;
 import androidx.appcompat.app.AlertDialog;
@@ -25,13 +26,17 @@ import com.alaruss.verbs.MyApplication;
 import com.alaruss.verbs.R;
 import com.alaruss.verbs.db.VerbDAO;
 import com.alaruss.verbs.models.Verb;
+import com.alaruss.verbs.viewmodels.VerbDetailViewModel;
 
 
 public class VerbViewFragment extends Fragment {
     Verb mVerb;
     VerbViewFragmentListener mListener;
+    VerbDetailViewModel viewModel;
     private TextView mTranslateView;
     private int starDrawable, starInactiveDrawable;
+    private SectionPagerAdapter mAdapter;
+    private ViewPager mViewPager;
 
     public VerbViewFragment() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
@@ -52,7 +57,9 @@ public class VerbViewFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-        getActivity().setTitle(mVerb.getInfinitive());
+        if (mVerb != null) {
+            getActivity().setTitle(mVerb.getInfinitive());
+        }
 //        mTranslateView.setText(getTranslationText());
     }
 
@@ -72,13 +79,35 @@ public class VerbViewFragment extends Fragment {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
         int verbId = getArguments() != null ? getArguments().getInt(getString(R.string.EXTRA_ID)) : 0;
-        if (verbId == 0) { // didn found verb
+
+        // Initialize ViewModel
+        viewModel = new ViewModelProvider(this).get(VerbDetailViewModel.class);
+
+        if (verbId == 0) { // didn't find verb
             mListener.onVerbViewFinished();
         } else {
-            VerbDAO verbDAO = ((MyApplication) getActivity().getApplication()).getDBHelper().getVerbDAO();
-            mVerb = verbDAO.getVerb(verbId);
+            viewModel.setVerbId(verbId);
 
-            verbDAO.updateLastAccess(mVerb);
+            // Observe verb changes
+            viewModel.getVerb().observe(this, verb -> {
+                if (verb != null) {
+                    mVerb = verb;
+                    // Update last access when verb is loaded
+                    viewModel.updateLastAccess(verb);
+                    // Refresh UI if already created
+                    if (mTranslateView != null) {
+                        mTranslateView.setText(getTranslationText());
+                    }
+                    if (mAdapter != null) {
+                        mAdapter.notifyDataSetChanged();
+                    }
+                    if (mVerb != null) {
+                         getActivity().setTitle(mVerb.getInfinitive());
+                    }
+                    // Update options menu
+                    getActivity().invalidateOptionsMenu();
+                }
+            });
         }
     }
 
@@ -87,9 +116,10 @@ public class VerbViewFragment extends Fragment {
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_verb_view, container, false);
         TabLayout tabLayout = (TabLayout) view.findViewById(R.id.tab_layout);
-        ViewPager viewPager = (ViewPager) view.findViewById(R.id.tab_pager);
-        viewPager.setAdapter(new SectionPagerAdapter());
-        tabLayout.setupWithViewPager(viewPager);
+        mViewPager = (ViewPager) view.findViewById(R.id.tab_pager);
+        mAdapter = new SectionPagerAdapter();
+        mViewPager.setAdapter(mAdapter);
+        tabLayout.setupWithViewPager(mViewPager);
         mTranslateView = (TextView) view.findViewById(R.id.translation_text);
         mTranslateView.setText(getTranslationText());
         mTranslateView.setOnTouchListener(new View.OnTouchListener() {
@@ -99,6 +129,7 @@ public class VerbViewFragment extends Fragment {
                 int action = event.getAction();
 
                 if (action == MotionEvent.ACTION_DOWN) {
+                    if (mVerb == null) return false;
                     int leftEdgeOfRightDrawable = mTranslateView.getRight()
                             - mTranslateView.getCompoundDrawables()[DRAWABLE_RIGHT].getBounds().width();
                     if (event.getRawX() >= leftEdgeOfRightDrawable) {
@@ -138,6 +169,9 @@ public class VerbViewFragment extends Fragment {
     }
 
     private String getTranslationText() {
+        if (mVerb == null) {
+            return "";
+        }
         SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(getActivity());
         String translationLanguage = sharedPref.getString(getString(R.string.pref_translationLanguage), getString(R.string.pref_translationLanguage_default));
         String translation;
@@ -150,12 +184,15 @@ public class VerbViewFragment extends Fragment {
     }
 
     private void setTranslationText(String text) {
+        if (mVerb == null) {
+            return;
+        }
         SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(getActivity());
         String translationLanguage = sharedPref.getString(getString(R.string.pref_translationLanguage), getString(R.string.pref_translationLanguage_default));
         if (translationLanguage.equals("en")) {
-            ((MyApplication) getActivity().getApplication()).getDBHelper().getVerbDAO().setTranslationEn(mVerb, text);
+            viewModel.updateTranslationEn(mVerb, text);
         } else {
-            ((MyApplication) getActivity().getApplication()).getDBHelper().getVerbDAO().setTranslationEs(mVerb, text);
+            viewModel.updateTranslationEs(mVerb, text);
         }
         mTranslateView.setText(text);
     }
@@ -170,6 +207,10 @@ public class VerbViewFragment extends Fragment {
         public Object instantiateItem(ViewGroup collection, int position) {
             LayoutInflater inflater = getActivity().getLayoutInflater();
             View view;
+            if (mVerb == null) {
+                // This shouldn't be called if getCount is 0 but as a safeguard.
+                return new View(getActivity());
+            }
             switch (position) {
                 case 0:
                     view = inflater.inflate(R.layout.fragment_verb_ind_view, collection, false);
@@ -220,7 +261,7 @@ public class VerbViewFragment extends Fragment {
 
         @Override
         public int getCount() {
-            return 3;
+            return mVerb == null ? 0 : 3;
         }
 
         @Override
@@ -247,7 +288,7 @@ public class VerbViewFragment extends Fragment {
         MenuItem searchItem = menu.findItem(R.id.action_search);
         searchItem.setVisible(true);
         MenuItem favoriteItem = menu.findItem(R.id.action_favorite);
-        if (mVerb.isFavorite()) {
+        if (mVerb != null && mVerb.isFavorite()) {
             favoriteItem.setIcon(starDrawable);
         } else {
             favoriteItem.setIcon(starInactiveDrawable);
@@ -259,11 +300,14 @@ public class VerbViewFragment extends Fragment {
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
         if (id == R.id.action_favorite) {
-            ((MyApplication) getActivity().getApplication()).getDBHelper().getVerbDAO().setFavorite(mVerb, !mVerb.isFavorite());
-            if (mVerb.isFavorite()) {
-                item.setIcon(starDrawable);
-            } else {
-                item.setIcon(starInactiveDrawable);
+            if (mVerb != null) {
+                boolean newFavoriteState = !mVerb.isFavorite();
+                viewModel.updateFavorite(mVerb, newFavoriteState);
+                if (newFavoriteState) {
+                    item.setIcon(starDrawable);
+                } else {
+                    item.setIcon(starInactiveDrawable);
+                }
             }
             return true;
         }

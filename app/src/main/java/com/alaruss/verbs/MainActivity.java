@@ -6,9 +6,8 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.os.AsyncTask;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
+import androidx.preference.PreferenceManager;
 import androidx.annotation.NonNull;
 import com.google.android.material.navigation.NavigationView;
 import androidx.fragment.app.Fragment;
@@ -27,9 +26,11 @@ import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.TextView;
 
+import com.alaruss.verbs.databinding.ActivityMainBinding;
 import com.alaruss.verbs.db.VerbDAO;
 import com.alaruss.verbs.fragments.VerbListFragment;
 import com.alaruss.verbs.fragments.VerbViewFragment;
+import com.alaruss.verbs.utils.BackgroundTaskExecutor;
 import com.google.firebase.analytics.FirebaseAnalytics;
 import com.google.firebase.crashlytics.FirebaseCrashlytics;
 
@@ -44,70 +45,11 @@ public class MainActivity extends AppCompatActivity
     private final String PREF_DATA_MIGRATION = "data_migration";
     private MyApplication mApp;
     private FirebaseAnalytics mFirebaseAnalytics;
-
+    private BackgroundTaskExecutor taskExecutor;
+    private ProgressDialog mProgressDialog;
+    private ActivityMainBinding binding;
 
     ActionBarDrawerToggle mDrawerToggle;
-
-
-    private abstract class MigrationDbTask extends AsyncTask<Void, Integer, Void> implements VerbDAO.ImportProgressCallback {
-        ProgressDialog mProgressDialog;
-
-        abstract public int getMigrationNumber();
-
-        protected void onPreExecute() {
-            super.onPreExecute();
-            mProgressDialog = new ProgressDialog(MainActivity.this);
-            mProgressDialog.setMax(100);
-            mProgressDialog.setTitle("Updating data...");
-            mProgressDialog.setProgress(0);
-            mProgressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-            mProgressDialog.show();
-        }
-
-        public void onProgress(Integer progress) {
-            publishProgress(progress);
-        }
-
-        protected void onProgressUpdate(Integer... progress) {
-            mProgressDialog.setProgress(progress[0]);
-        }
-
-        @SuppressLint("ApplySharedPref")
-        @Override
-        protected void onPostExecute(Void result) {
-            super.onPostExecute(result);
-            SharedPreferences prefs = getSharedPreferences(getPackageName(), Activity.MODE_PRIVATE);
-            prefs.edit().putInt(PREF_DATA_MIGRATION, this.getMigrationNumber()).apply();
-            mProgressDialog.dismiss();
-            migrateDataAndStart();
-        }
-    }
-
-    private class MigrationDB1 extends MigrationDbTask {
-        public int getMigrationNumber() {
-            return 2;
-        }
-
-        @Override
-        protected Void doInBackground(Void... params) {
-            VerbDAO verbDAO = mApp.getDBHelper().getVerbDAO();
-            verbDAO.dataMigration01(mApp, this);
-            return null;
-        }
-    }
-
-    private class MigrationDB2 extends MigrationDbTask {
-        public int getMigrationNumber() {
-            return 2;
-        }
-
-        @Override
-        protected Void doInBackground(Void... params) {
-            VerbDAO verbDAO = mApp.getDBHelper().getVerbDAO();
-            verbDAO.dataMigration02(mApp, this);
-            return null;
-        }
-    }
 
     private FragmentManager.OnBackStackChangedListener
             mOnBackStackChangedListener = new FragmentManager.OnBackStackChangedListener() {
@@ -124,6 +66,9 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     protected void onDestroy() {
+        if (taskExecutor != null) {
+            taskExecutor.shutdown();
+        }
         getSupportFragmentManager().removeOnBackStackChangedListener(mOnBackStackChangedListener);
         super.onDestroy();
     }
@@ -150,13 +95,15 @@ public class MainActivity extends AppCompatActivity
         mFirebaseAnalytics = FirebaseAnalytics.getInstance(this);
         PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
         mApp = (MyApplication) getApplication();
-        setContentView(R.layout.activity_main);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
+        taskExecutor = new BackgroundTaskExecutor();
 
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        binding = ActivityMainBinding.inflate(getLayoutInflater());
+        setContentView(binding.getRoot());
+        setSupportActionBar(binding.appBarMain.toolbar);
+
         mDrawerToggle = new ActionBarDrawerToggle(
-                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+                this, binding.drawerLayout, binding.appBarMain.toolbar,
+                R.string.navigation_drawer_open, R.string.navigation_drawer_close);
 
         mDrawerToggle.setToolbarNavigationClickListener(new View.OnClickListener() {
             @Override
@@ -164,11 +111,10 @@ public class MainActivity extends AppCompatActivity
                 onBackPressed();
             }
         });
-        drawer.setDrawerListener(mDrawerToggle);
+        binding.drawerLayout.setDrawerListener(mDrawerToggle);
         mDrawerToggle.syncState();
 
-        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
-        navigationView.setNavigationItemSelectedListener(this);
+        binding.navView.setNavigationItemSelectedListener(this);
         getSupportFragmentManager().addOnBackStackChangedListener(mOnBackStackChangedListener);
         if (savedInstanceState != null) {
             int id = savedInstanceState.getInt(VERB_ID);
@@ -197,10 +143,10 @@ public class MainActivity extends AppCompatActivity
 
             if (lastMigration == 0) {
                 // This is a fresh install. Run the first migration.
-                new MigrationDB1().execute();
+                runMigration(1, 2);
             } else if (lastMigration == 1) {
                 // The app was updated and the last migration was #1, so run #2.
-                new MigrationDB2().execute();
+                runMigration(2, 2);
             } else {
                 // All migrations are complete, show the main list.
                 showList();
@@ -214,6 +160,46 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
+    @SuppressLint("ApplySharedPref")
+    private void runMigration(int migrationType, int migrationNumber) {
+        // Show progress dialog
+        mProgressDialog = new ProgressDialog(MainActivity.this);
+        mProgressDialog.setMax(100);
+        mProgressDialog.setTitle("Updating data...");
+        mProgressDialog.setProgress(0);
+        mProgressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+        mProgressDialog.show();
+
+        taskExecutor.execute(
+                listener -> {
+                    // Background task
+                    VerbDAO verbDAO = mApp.getDBHelper().getVerbDAO();
+                    if (migrationType == 1) {
+                        verbDAO.dataMigration01(mApp, listener::onProgress);
+                    } else {
+                        verbDAO.dataMigration02(mApp, listener::onProgress);
+                    }
+                    return null;
+                },
+                progress -> {
+                    // Progress update on main thread
+                    if (mProgressDialog != null) {
+                        mProgressDialog.setProgress(progress);
+                    }
+                },
+                result -> {
+                    // Completion on main thread
+                    SharedPreferences prefs = getSharedPreferences(getPackageName(), Activity.MODE_PRIVATE);
+                    prefs.edit().putInt(PREF_DATA_MIGRATION, migrationNumber).apply();
+                    if (mProgressDialog != null) {
+                        mProgressDialog.dismiss();
+                        mProgressDialog = null;
+                    }
+                    migrateDataAndStart();
+                }
+        );
+    }
+
 
     @Override
     public void onSaveInstanceState(@NonNull Bundle outState) {
@@ -223,9 +209,8 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void onBackPressed() {
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        if (drawer.isDrawerOpen(GravityCompat.START)) {
-            drawer.closeDrawer(GravityCompat.START);
+        if (binding.drawerLayout.isDrawerOpen(GravityCompat.START)) {
+            binding.drawerLayout.closeDrawer(GravityCompat.START);
         } else {
             super.onBackPressed();
         }
@@ -282,8 +267,7 @@ public class MainActivity extends AppCompatActivity
             startActivity(intent);
         }
 
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        drawer.closeDrawer(GravityCompat.START);
+        binding.drawerLayout.closeDrawer(GravityCompat.START);
         return true;
     }
 
