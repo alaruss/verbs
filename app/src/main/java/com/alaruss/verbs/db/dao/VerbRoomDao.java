@@ -64,4 +64,12 @@ public interface VerbRoomDao {
     // Get verbs by query (for search functionality)
     @Query("SELECT * FROM verbs WHERE infinitive LIKE :query || '%' ORDER BY infinitive ASC")
     List<VerbEntity> searchVerbs(String query);
+
+    // Update English translation by infinitive (for data migration)
+    @Query("UPDATE verbs SET en = :translationEn WHERE infinitive = :infinitive")
+    void updateTranslationEnByInfinitive(String infinitive, String translationEn);
+
+    // Update Spanish translation by infinitive (for data migration)
+    @Query("UPDATE verbs SET es = :translationEs WHERE infinitive = :infinitive")
+    void updateTranslationEsByInfinitive(String infinitive, String translationEs);
 }

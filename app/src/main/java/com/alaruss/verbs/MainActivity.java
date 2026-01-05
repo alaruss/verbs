@@ -27,7 +27,6 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.TextView;
 
 import com.alaruss.verbs.databinding.ActivityMainBinding;
-import com.alaruss.verbs.db.VerbDAO;
 import com.alaruss.verbs.fragments.VerbListFragment;
 import com.alaruss.verbs.fragments.VerbViewFragment;
 import com.alaruss.verbs.utils.BackgroundTaskExecutor;
@@ -173,11 +172,10 @@ public class MainActivity extends AppCompatActivity
         taskExecutor.execute(
                 listener -> {
                     // Background task
-                    VerbDAO verbDAO = mApp.getDBHelper().getVerbDAO();
                     if (migrationType == 1) {
-                        verbDAO.dataMigration01(mApp, listener::onProgress);
+                        mApp.getVerbRepository().runDataMigration01(mApp, listener::onProgress);
                     } else {
-                        verbDAO.dataMigration02(mApp, listener::onProgress);
+                        mApp.getVerbRepository().runDataMigration02(mApp, listener::onProgress);
                     }
                     return null;
                 },
@@ -335,7 +333,6 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     protected void onResume() {
-        mApp.getDBHelper().open();
         super.onResume();
     }
 

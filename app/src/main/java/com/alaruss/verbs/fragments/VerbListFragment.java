@@ -22,11 +22,9 @@ import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
 import android.widget.TextView;
 
-import com.alaruss.verbs.MyApplication;
 import com.alaruss.verbs.R;
 import com.alaruss.verbs.adapters.VerbRecyclerAdapter;
 import com.alaruss.verbs.databinding.FragmentVerbListBinding;
-import com.alaruss.verbs.db.VerbDAO;
 import com.alaruss.verbs.models.Verb;
 import com.alaruss.verbs.viewmodels.VerbListViewModel;
 
@@ -40,7 +38,6 @@ public class VerbListFragment extends Fragment {
     private FragmentVerbListBinding binding;
     private VerbRecyclerAdapter mAdapter;
     private String filterQuery;
-    private VerbDAO mVerbDAO;
     private VerbListViewModel viewModel;
     private int searchDrawable, closeActiveDrawable, closeInactiveDrawable;
 
@@ -86,7 +83,6 @@ public class VerbListFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
-        mVerbDAO = ((MyApplication) getActivity().getApplication()).getDBHelper().getVerbDAO();
         filterQuery = getArguments() != null ? getArguments().getString(getString(R.string.EXTRA_QUERY)) : null;
 
         // Initialize ViewModel
