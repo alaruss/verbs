@@ -25,15 +25,16 @@ android {
     }
     buildTypes {
         release {
-            minifyEnabled false
+            minifyEnabled true
+            shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             buildConfigField 'Boolean', 'enableCrashlytics', 'true'
             resValue "string", "app_name", "Verbs catalans"
         }
         debug {
             buildConfigField 'Boolean', 'enableCrashlytics', 'false'
-            applicationIdSuffix ".debug"
             resValue "string", "app_name", "__Verbs catalans"
+            applicationIdSuffix ".debug"
         }
     }
     compileSdk {
@@ -74,6 +75,9 @@ dependencies {
 
     // Google Play Billing
     implementation "com.android.billingclient:billing:6.0.1"
+
+    // Google Mobile Ads (AdMob)
+    implementation "com.google.android.gms:play-services-ads:23.0.0"
 
     testImplementation 'junit:junit:4.13.2'
 }

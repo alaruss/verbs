@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="24dp">
+
+    <TextView
+        android:id="@+id/dialog_message"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/premium_unlock_message"
+        android:textSize="16sp"
+        android:layout_marginBottom="16dp" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/premium_benefits_title"
+        android:textStyle="bold"
+        android:textSize="14sp"
+        android:layout_marginBottom="8dp" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/premium_benefit_no_ads"
+        android:textSize="14sp"
+        android:drawableStart="@android:drawable/checkbox_on_background"
+        android:drawablePadding="8dp"
+        android:layout_marginBottom="4dp" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/premium_benefit_favorites"
+        android:textSize="14sp"
+        android:drawableStart="@android:drawable/checkbox_on_background"
+        android:drawablePadding="8dp"
+        android:layout_marginBottom="4dp" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/premium_benefit_dark_theme"
+        android:textSize="14sp"
+        android:drawableStart="@android:drawable/checkbox_on_background"
+        android:drawablePadding="8dp"
+        android:layout_marginBottom="4dp" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/premium_benefit_system_theme"
+        android:textSize="14sp"
+        android:drawableStart="@android:drawable/checkbox_on_background"
+        android:drawablePadding="8dp"
+        android:layout_marginBottom="16dp" />
+
+    <TextView
+        android:id="@+id/price_text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/premium_price_default"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:textColor="?attr/colorAccent"
+        android:gravity="center" />
+
+</LinearLayout>

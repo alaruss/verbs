@@ -8,10 +8,13 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Transformations;
 
+import android.util.Log;
+
 import com.alaruss.verbs.db.VerbRepository;
 import com.alaruss.verbs.models.Verb;
 
 public class VerbDetailViewModel extends AndroidViewModel {
+    private static final String TAG = "VerbDetailViewModel";
     private final VerbRepository repository;
     private final MutableLiveData<Integer> verbId;
     private final LiveData<Verb> verb;
@@ -33,6 +36,11 @@ public class VerbDetailViewModel extends AndroidViewModel {
         verbId.setValue(id);
     }
 
+    public int getVerbId() {
+        Integer id = verbId.getValue();
+        return id != null ? id : 0;
+    }
+
     public LiveData<Verb> getVerb() {
         return verb;
     }
@@ -40,27 +48,35 @@ public class VerbDetailViewModel extends AndroidViewModel {
     public void updateFavorite(Verb verb, boolean isFavorite) {
         if (verb != null) {
             verb.setFavorite(isFavorite);
-            repository.updateFavorite(verb, isFavorite, null);
+            repository.updateFavorite(verb, isFavorite, () -> {
+                Log.d(TAG, "Favorite updated for verb: " + verb.getInfinitive() + " -> " + isFavorite);
+            });
         }
     }
 
     public void updateLastAccess(Verb verb) {
         if (verb != null) {
-            repository.updateLastAccess(verb, null);
+            repository.updateLastAccess(verb, () -> {
+                Log.d(TAG, "Last access updated for verb: " + verb.getInfinitive());
+            });
         }
     }
 
     public void updateTranslationEn(Verb verb, String translation) {
         if (verb != null) {
             verb.setTranslationEn(translation);
-            repository.updateTranslationEn(verb, translation, null);
+            repository.updateTranslationEn(verb, translation, () -> {
+                Log.d(TAG, "English translation updated for verb: " + verb.getInfinitive());
+            });
         }
     }
 
     public void updateTranslationEs(Verb verb, String translation) {
         if (verb != null) {
             verb.setTranslationEs(translation);
-            repository.updateTranslationEs(verb, translation, null);
+            repository.updateTranslationEs(verb, translation, () -> {
+                Log.d(TAG, "Spanish translation updated for verb: " + verb.getInfinitive());
+            });
         }
     }
 

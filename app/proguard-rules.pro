@@ -30,6 +30,18 @@
 # Keep DAO interfaces
 -keep interface com.alaruss.verbs.db.dao.** { *; }
 
+# Google Play Billing
+-keep class com.android.billingclient.** { *; }
+-keep interface com.android.billingclient.** { *; }
+-dontwarn com.android.billingclient.**
+
+# Premium classes
+-keep class com.alaruss.verbs.premium.** { *; }
+
+# Google Mobile Ads
+-keep class com.google.android.gms.ads.** { *; }
+-dontwarn com.google.android.gms.ads.**
+
 # If your project uses WebView with JS, uncomment the following
 # and specify the fully qualified class name to the JavaScript interface
 # class:

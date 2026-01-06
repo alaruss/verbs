@@ -40,4 +40,27 @@
     <string name="share_text">Conjugació dels verbs catalans: http://play.google.com/store/apps/details?id=com.alaruss.verbs</string>
     <string name="ddd">pref_translationLanguage</string>
     <string name="translation_edit_title">Canvi la traducció</string>
+
+    <!-- Premium -->
+    <string name="nav_buy_premium">Comprar Premium</string>
+    <string name="premium_title">Premium</string>
+    <string name="premium_unlock_message">Desbloqueja totes les funcions</string>
+    <string name="premium_benefits_title">Beneficis Premium:</string>
+    <string name="premium_benefit_no_ads">Sense anuncis</string>
+    <string name="premium_benefit_favorites">Favorits il·limitats</string>
+    <string name="premium_benefit_dark_theme">Tema fosc</string>
+    <string name="premium_benefit_system_theme">Tema del sistema</string>
+    <string name="premium_price_default">1,00 €</string>
+    <string name="buy_button">Comprar</string>
+    <string name="favorites_limit_message">Has arribat al límit de %d favorits. Compra Premium per favorits il·limitats.</string>
+    <string name="theme_requires_premium">El tema seleccionat requereix Premium</string>
+
+    <!-- Theme -->
+    <string name="pref_theme_title">Tema</string>
+
+    <!-- AdMob (replace with your actual IDs for production) -->
+    <!-- Test App ID: ca-app-pub-3940256099942544~3347511713 -->
+    <string name="admob_app_id">ca-app-pub-3940256099942544~3347511713</string>
+    <!-- Test Banner Ad Unit ID: ca-app-pub-3940256099942544/6300978111 -->
+    <string name="admob_banner_ad_unit_id">ca-app-pub-3940256099942544/6300978111</string>
 </resources>

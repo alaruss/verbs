@@ -17,20 +17,24 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.zip.InflaterInputStream;
+
+import com.google.firebase.crashlytics.FirebaseCrashlytics;
 
 public class VerbRepository {
     private static final String LOG_TAG = VerbRepository.class.getSimpleName();
     private static final int TOTAL_VERBS_COUNT = 8494;
 
+    private final VerbDatabase database;
     private final VerbRoomDao verbDao;
     private final ExecutorService executor;
     private final Context context;
 
     public VerbRepository(Context context) {
         this.context = context.getApplicationContext();
-        VerbDatabase db = VerbDatabase.getInstance(context);
-        verbDao = db.verbDao();
+        database = VerbDatabase.getInstance(context);
+        verbDao = database.verbDao();
         executor = Executors.newSingleThreadExecutor();
     }
 
@@ -59,7 +63,7 @@ public class VerbRepository {
         VerbEntity entity = new VerbEntity();
         entity.setId(verb.getId());
         entity.setInfinitive(verb.getInfinitive());
-        entity.setLastAccess(verb.getLastAccess() != null ? verb.getLastAccessTS() : null);
+        entity.setLastAccess(verb.getLastAccess() != null ? (int)(verb.getLastAccess().getTime() / 1000) : null);
         entity.setIsFavorite(verb.isFavorite() ? 1 : 0);
         entity.setAccessCount(verb.getAccessCount());
         entity.setData(verb.getData());
@@ -101,11 +105,16 @@ public class VerbRepository {
         return entitiesToModels(entities);
     }
 
+    public int getFavoritesCountSync() {
+        return verbDao.getFavoritesCount();
+    }
+
     // Async update methods (run on background thread)
 
     public void updateLastAccess(Verb verb, Runnable onComplete) {
         executor.execute(() -> {
-            verbDao.updateLastAccess(verb.getId(), verb.getLastAccessTS(), verb.getAccessCount());
+            Integer lastAccessTS = verb.getLastAccess() != null ? (int)(verb.getLastAccess().getTime() / 1000) : null;
+            verbDao.updateLastAccess(verb.getId(), lastAccessTS, verb.getAccessCount());
             if (onComplete != null) {
                 onComplete.run();
             }
@@ -171,6 +180,7 @@ public class VerbRepository {
     /**
      * Migration 1: Initial data population from assets
      * Reads verbs.csv and inserts all verbs into the database
+     * Uses transaction to ensure atomicity
      */
     public void runDataMigration01(Context context, ImportProgressCallback progressCallback) {
         try {
@@ -178,18 +188,26 @@ public class VerbRepository {
             BufferedReader reader = new BufferedReader(new InputStreamReader(is));
 
             try {
+                // Collect all entities first, then insert in transaction
+                List<VerbEntity> entities = new ArrayList<>();
                 String line;
                 int count = 0;
-                int prevProgress = -1;
-                int progress;
 
                 while ((line = reader.readLine()) != null) {
                     String[] rowData = line.split(";");
+                    if (rowData.length < 3) {
+                        Log.w(LOG_TAG, "Skipping malformed line: " + line);
+                        continue;
+                    }
 
                     VerbEntity entity = new VerbEntity();
                     entity.setInfinitive(rowData[0]);
                     entity.setData(rowData[1]);
-                    entity.setIsFavorite(Integer.parseInt(rowData[2]));
+                    try {
+                        entity.setIsFavorite(Integer.parseInt(rowData[2]));
+                    } catch (NumberFormatException e) {
+                        entity.setIsFavorite(0);
+                    }
 
                     if (rowData.length > 3) {
                         entity.setTranslationEn(rowData[3]);
@@ -198,17 +216,36 @@ public class VerbRepository {
                         }
                     }
 
-                    verbDao.insertVerb(entity);
+                    entities.add(entity);
                     count++;
 
-                    progress = (int) ((count / (float) TOTAL_VERBS_COUNT) * 100);
-                    if (progressCallback != null && prevProgress != progress) {
-                        prevProgress = progress;
+                    // Report progress during parsing
+                    if (progressCallback != null) {
+                        int progress = (int) ((count / (float) TOTAL_VERBS_COUNT) * 50);
                         progressCallback.onProgress(progress);
                     }
                 }
+
+                // Insert all entities in a transaction
+                final int totalEntities = entities.size();
+                final int[] insertCount = {0};
+                database.runInTransaction(() -> {
+                    for (VerbEntity entity : entities) {
+                        verbDao.insertVerb(entity);
+                        insertCount[0]++;
+                        if (progressCallback != null && insertCount[0] % 100 == 0) {
+                            int progress = 50 + (int) ((insertCount[0] / (float) totalEntities) * 50);
+                            progressCallback.onProgress(progress);
+                        }
+                    }
+                });
+
+                if (progressCallback != null) {
+                    progressCallback.onProgress(100);
+                }
             } catch (IOException e) {
                 Log.e(LOG_TAG, "IO error during migration 01", e);
+                FirebaseCrashlytics.getInstance().recordException(e);
             } finally {
                 try {
                     is.close();
@@ -218,12 +255,14 @@ public class VerbRepository {
             }
         } catch (IOException e) {
             Log.e(LOG_TAG, "Error opening assets", e);
+            FirebaseCrashlytics.getInstance().recordException(e);
         }
     }
 
     /**
      * Migration 2: Translation data update
      * Reads verbs.csv and updates translation columns for all verbs
+     * Uses transaction to ensure atomicity
      */
     public void runDataMigration02(Context context, ImportProgressCallback progressCallback) {
         try {
@@ -231,10 +270,10 @@ public class VerbRepository {
             BufferedReader reader = new BufferedReader(new InputStreamReader(is));
 
             try {
+                // Collect all updates first
+                List<String[]> updates = new ArrayList<>();
                 String line;
                 int count = 0;
-                int prevProgress = -1;
-                int progress;
 
                 while ((line = reader.readLine()) != null) {
                     String[] rowData = line.split(";");
@@ -243,20 +282,38 @@ public class VerbRepository {
                         String infinitive = rowData[0];
                         String translationEn = rowData[3];
                         String translationEs = rowData.length > 4 ? rowData[4] : "";
-
-                        verbDao.updateTranslationEnByInfinitive(infinitive, translationEn);
-                        verbDao.updateTranslationEsByInfinitive(infinitive, translationEs);
-
+                        updates.add(new String[]{infinitive, translationEn, translationEs});
                         count++;
-                        progress = (int) ((count / (float) TOTAL_VERBS_COUNT) * 100);
-                        if (progressCallback != null && prevProgress != progress) {
-                            prevProgress = progress;
+
+                        // Report progress during parsing
+                        if (progressCallback != null) {
+                            int progress = (int) ((count / (float) TOTAL_VERBS_COUNT) * 50);
                             progressCallback.onProgress(progress);
                         }
                     }
                 }
+
+                // Apply all updates in a transaction
+                final int totalUpdates = updates.size();
+                final int[] updateCount = {0};
+                database.runInTransaction(() -> {
+                    for (String[] update : updates) {
+                        verbDao.updateTranslationEnByInfinitive(update[0], update[1]);
+                        verbDao.updateTranslationEsByInfinitive(update[0], update[2]);
+                        updateCount[0]++;
+                        if (progressCallback != null && updateCount[0] % 100 == 0) {
+                            int progress = 50 + (int) ((updateCount[0] / (float) totalUpdates) * 50);
+                            progressCallback.onProgress(progress);
+                        }
+                    }
+                });
+
+                if (progressCallback != null) {
+                    progressCallback.onProgress(100);
+                }
             } catch (IOException e) {
                 Log.e(LOG_TAG, "IO error during migration 02", e);
+                FirebaseCrashlytics.getInstance().recordException(e);
             } finally {
                 try {
                     is.close();
@@ -266,11 +323,19 @@ public class VerbRepository {
             }
         } catch (IOException e) {
             Log.e(LOG_TAG, "Error opening assets", e);
+            FirebaseCrashlytics.getInstance().recordException(e);
         }
     }
 
-    // Shutdown executor
     public void shutdown() {
         executor.shutdown();
+        try {
+            if (!executor.awaitTermination(5, TimeUnit.SECONDS)) {
+                executor.shutdownNow();
+            }
+        } catch (InterruptedException e) {
+            executor.shutdownNow();
+            Thread.currentThread().interrupt();
+        }
     }
 }

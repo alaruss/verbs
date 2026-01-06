@@ -72,4 +72,8 @@ public interface VerbRoomDao {
     // Update Spanish translation by infinitive (for data migration)
     @Query("UPDATE verbs SET es = :translationEs WHERE infinitive = :infinitive")
     void updateTranslationEsByInfinitive(String infinitive, String translationEs);
+
+    // Get favorites count (synchronous)
+    @Query("SELECT COUNT(*) FROM verbs WHERE is_favorite != 0")
+    int getFavoritesCount();
 }
