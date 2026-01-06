@@ -41,9 +41,7 @@ public abstract class VerbDatabase extends RoomDatabase {
     static final Migration MIGRATION_1_2 = new Migration(1, 2) {
         @Override
         public void migrate(@NonNull SupportSQLiteDatabase database) {
-            // Schema already updated in DBHelper.onUpgrade
-            // This migration is for Room awareness only
-            // The columns "en" and "es" should already exist if migrated through DBHelper
+            // Schema already updated in VerbRepository.runDataMigration02()
         }
     };
 }
