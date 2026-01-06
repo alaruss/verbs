@@ -18,11 +18,13 @@
         android:drawableEnd="@android:drawable/ic_delete"
         android:gravity="center"/>
 
-    <ListView
+    <androidx.recyclerview.widget.RecyclerView
         android:id="@android:id/list"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_below="@+id/searchList"/>
+        android:layout_below="@+id/searchList"
+        android:layout_alignParentBottom="true"
+        android:scrollbars="vertical"/>
 
     <!--<TextView android:id="@android:id/empty" android:layout_width="match_parent"-->
     <!--android:layout_height="match_parent" android:gravity="center" />-->
