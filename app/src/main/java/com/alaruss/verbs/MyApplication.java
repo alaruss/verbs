@@ -3,11 +3,11 @@ package com.alaruss.verbs;
 import android.app.Application;
 import android.util.Log;
 
-import com.alaruss.verbs.db.DBHelper;
+import com.alaruss.verbs.db.VerbRepository;
 
 public class MyApplication extends Application {
     private static final String LOG_TAG = MyApplication.class.getSimpleName();
-    private DBHelper mDBHelper;
+    private VerbRepository mVerbRepository;
 
 
     @Override
@@ -16,10 +16,10 @@ public class MyApplication extends Application {
         Log.d(LOG_TAG, "App.create");
     }
 
-    public DBHelper getDBHelper() {
-        if (mDBHelper == null) {
-            mDBHelper = new DBHelper(this);
+    public VerbRepository getVerbRepository() {
+        if (mVerbRepository == null) {
+            mVerbRepository = new VerbRepository(this);
         }
-        return mDBHelper;
+        return mVerbRepository;
     }
 }
