@@ -2,6 +2,12 @@ apply plugin: 'com.android.application'
 apply plugin: 'com.google.gms.google-services'
 apply plugin: 'com.google.firebase.crashlytics'
 
+def localProperties = new Properties()
+def localPropertiesFile = rootProject.file('local.properties')
+if (localPropertiesFile.exists()) {
+    localProperties.load(new FileInputStream(localPropertiesFile))
+}
+
 repositories {
     maven { url 'https://maven.google.com' }
 }
@@ -30,11 +36,21 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             buildConfigField 'Boolean', 'enableCrashlytics', 'true'
             resValue "string", "app_name", "Verbs catalans"
+
+            def admobAppId = localProperties.getProperty('admob_app_id')
+            def admobBannerAdUnitId = localProperties.getProperty('admob_banner_ad_unit_id')
+            if (admobAppId == null || admobBannerAdUnitId == null) {
+                throw new GradleException("Missing AdMob IDs in local.properties. Add admob_app_id and admob_banner_ad_unit_id for release builds.")
+            }
+            resValue "string", "admob_app_id", admobAppId
+            resValue "string", "admob_banner_ad_unit_id", admobBannerAdUnitId
         }
         debug {
             buildConfigField 'Boolean', 'enableCrashlytics', 'false'
             resValue "string", "app_name", "__Verbs catalans"
             applicationIdSuffix ".debug"
+            resValue "string", "admob_app_id", "ca-app-pub-3940256099942544~3347511713"
+            resValue "string", "admob_banner_ad_unit_id", "ca-app-pub-3940256099942544/6300978111"
         }
     }
     compileSdk {

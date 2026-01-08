@@ -57,10 +57,4 @@
 
     <!-- Theme -->
     <string name="pref_theme_title">Tema</string>
-
-    <!-- AdMob (replace with your actual IDs for production) -->
-    <!-- Test App ID: ca-app-pub-3940256099942544~3347511713 -->
-    <string name="admob_app_id">ca-app-pub-3940256099942544~3347511713</string>
-    <!-- Test Banner Ad Unit ID: ca-app-pub-3940256099942544/6300978111 -->
-    <string name="admob_banner_ad_unit_id">ca-app-pub-3940256099942544/6300978111</string>
 </resources>
