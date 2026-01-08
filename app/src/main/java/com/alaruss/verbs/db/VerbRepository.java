@@ -171,6 +171,10 @@ public class VerbRepository {
         return Transformations.map(verbDao.getVerbByIdLive(id), VerbRepository::entityToModel);
     }
 
+    public LiveData<Integer> getFavoritesCount() {
+        return verbDao.getFavoritesCountLive();
+    }
+
     // Data migration methods using Room
 
     public interface ImportProgressCallback {

@@ -44,6 +44,8 @@ public class VerbViewFragment extends Fragment {
     private SectionPagerAdapter mAdapter;
     private ViewPager mViewPager;
     private AdView mAdView;
+    private boolean adLoaded = false;
+    private boolean lastKnownPremiumStatus = false;
 
     public VerbViewFragment() {
         starDrawable = R.drawable.ic_star;
@@ -194,15 +196,23 @@ public class VerbViewFragment extends Fragment {
     }
 
     private void loadAd() {
-        if (mListener == null) return;
+        if (mListener == null || mAdView == null) return;
         PremiumManager premiumManager = mListener.getPremiumManager();
-        if (premiumManager.isPremium()) {
+        boolean isPremium = premiumManager.isPremium();
+
+        if (isPremium) {
             mAdView.setVisibility(View.GONE);
+            adLoaded = false;
         } else {
             mAdView.setVisibility(View.VISIBLE);
-            AdRequest adRequest = new AdRequest.Builder().build();
-            mAdView.loadAd(adRequest);
+            // Only load if not already loaded or premium status changed
+            if (!adLoaded || lastKnownPremiumStatus != isPremium) {
+                AdRequest adRequest = new AdRequest.Builder().build();
+                mAdView.loadAd(adRequest);
+                adLoaded = true;
+            }
         }
+        lastKnownPremiumStatus = isPremium;
     }
 
     private String getTranslationText() {
@@ -429,6 +439,7 @@ public class VerbViewFragment extends Fragment {
             mAdView.destroy();
             mAdView = null;
         }
+        adLoaded = false;
         // Nullify view references
         mTranslateView = null;
         mViewPager = null;

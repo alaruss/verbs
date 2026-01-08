@@ -38,6 +38,8 @@ import com.alaruss.verbs.utils.BackgroundTaskExecutor;
 import com.google.firebase.analytics.FirebaseAnalytics;
 import com.google.firebase.crashlytics.FirebaseCrashlytics;
 
+import androidx.lifecycle.LiveData;
+
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, VerbListFragment.VerbListFragmentListener,
         VerbViewFragment.VerbViewFragmentListener {
@@ -54,7 +56,8 @@ public class MainActivity extends AppCompatActivity
     private ActivityMainBinding binding;
     private BillingManager billingManager;
     private PremiumManager premiumManager;
-    private int cachedFavoritesCount = 0;
+    private LiveData<Integer> favoritesCountLiveData;
+    private int currentFavoritesCount = 0;
     private static final String PREF_MIGRATION_IN_PROGRESS = "migration_in_progress";
 
     ActionBarDrawerToggle mDrawerToggle;
@@ -417,32 +420,24 @@ public class MainActivity extends AppCompatActivity
     protected void onResume() {
         super.onResume();
         updatePremiumMenuVisibility();
-        refreshFavoritesCount();
     }
 
     // Premium system methods
 
     private void initializePremiumSystem() {
-        if (!premiumManager.isInitialized()) {
-            taskExecutor.execute(
-                    listener -> mApp.getVerbRepository().getFavoritesCountSync(),
-                    progress -> {},
-                    count -> {
-                        premiumManager.initializeFavoritesLimit((Integer) count);
-                        cachedFavoritesCount = (Integer) count;
+        // Set up LiveData observation for favorites count (only once)
+        if (favoritesCountLiveData == null) {
+            favoritesCountLiveData = mApp.getVerbRepository().getFavoritesCount();
+            favoritesCountLiveData.observe(this, count -> {
+                if (count != null) {
+                    currentFavoritesCount = count;
+                    // Initialize premium manager on first count if not already done
+                    if (!premiumManager.isInitialized()) {
+                        premiumManager.initializeFavoritesLimit(count);
                     }
-            );
-        } else {
-            refreshFavoritesCount();
+                }
+            });
         }
-    }
-
-    private void refreshFavoritesCount() {
-        taskExecutor.execute(
-                listener -> mApp.getVerbRepository().getFavoritesCountSync(),
-                progress -> {},
-                count -> cachedFavoritesCount = (Integer) count
-        );
     }
 
     private void updatePremiumMenuVisibility() {
@@ -464,16 +459,11 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public int getFavoritesCount() {
-        return cachedFavoritesCount;
+        return currentFavoritesCount;
     }
 
     @Override
     public void onFavoriteChanged(boolean added) {
-        if (added) {
-            cachedFavoritesCount++;
-        } else {
-            cachedFavoritesCount = Math.max(0, cachedFavoritesCount - 1);
-        }
     }
 
 }

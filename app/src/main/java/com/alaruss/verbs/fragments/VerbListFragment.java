@@ -47,6 +47,8 @@ public class VerbListFragment extends Fragment {
     private VerbListViewModel viewModel;
     private int searchDrawable, closeActiveDrawable, closeInactiveDrawable;
     private AdView mAdView;
+    private boolean adLoaded = false;
+    private boolean lastKnownPremiumStatus = false;
     // Store listener references for cleanup
     private TextWatcher searchTextWatcher;
     private View.OnTouchListener searchTouchListener;
@@ -223,15 +225,23 @@ public class VerbListFragment extends Fragment {
     }
 
     private void loadAd() {
-        if (mListener == null) return;
+        if (mListener == null || mAdView == null) return;
         PremiumManager premiumManager = mListener.getPremiumManager();
-        if (premiumManager.isPremium()) {
+        boolean isPremium = premiumManager.isPremium();
+
+        if (isPremium) {
             mAdView.setVisibility(View.GONE);
+            adLoaded = false;
         } else {
             mAdView.setVisibility(View.VISIBLE);
-            AdRequest adRequest = new AdRequest.Builder().build();
-            mAdView.loadAd(adRequest);
+            // Only load if not already loaded or premium status changed
+            if (!adLoaded || lastKnownPremiumStatus != isPremium) {
+                AdRequest adRequest = new AdRequest.Builder().build();
+                mAdView.loadAd(adRequest);
+                adLoaded = true;
+            }
         }
+        lastKnownPremiumStatus = isPremium;
     }
 
     @Override
@@ -255,6 +265,7 @@ public class VerbListFragment extends Fragment {
             mAdView.destroy();
             mAdView = null;
         }
+        adLoaded = false;
         super.onDestroyView();
         binding = null;
     }
