@@ -40,7 +40,7 @@ public class BillingManager implements PurchasesUpdatedListener {
 
     public BillingManager(Context context) {
         this.context = context.getApplicationContext();
-        this.premiumManager = new PremiumManager(context);
+        this.premiumManager = PremiumManager.getInstance(context);
         setupBillingClient();
     }
 
@@ -235,7 +235,8 @@ public class BillingManager implements PurchasesUpdatedListener {
         if (premiumProductDetails != null && premiumProductDetails.getOneTimePurchaseOfferDetails() != null) {
             return premiumProductDetails.getOneTimePurchaseOfferDetails().getFormattedPrice();
         }
-        return "1,00 €";
+        // Return null when price is unavailable - let UI handle the fallback
+        return null;
     }
 
     public boolean isReady() {

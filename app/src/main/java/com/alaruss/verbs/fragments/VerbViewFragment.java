@@ -1,10 +1,12 @@
 package com.alaruss.verbs.fragments;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
-import android.os.Build;
 import android.os.Bundle;
+
+import androidx.annotation.NonNull;
 import androidx.preference.PreferenceManager;
 import com.google.android.material.tabs.TabLayout;
 import androidx.fragment.app.Fragment;
@@ -60,19 +62,28 @@ public class VerbViewFragment extends Fragment {
         if (mVerb != null && getActivity() != null) {
             getActivity().setTitle(mVerb.getInfinitive());
         }
-        // Refresh ad visibility in case premium status changed
+        // Resume ad and refresh visibility in case premium status changed
         if (mAdView != null) {
+            mAdView.resume();
             loadAd();
         }
     }
 
     @Override
-    public void onAttach(Activity activity) {
-        super.onAttach(activity);
+    public void onPause() {
+        if (mAdView != null) {
+            mAdView.pause();
+        }
+        super.onPause();
+    }
+
+    @Override
+    public void onAttach(@NonNull Context context) {
+        super.onAttach(context);
         try {
-            mListener = (VerbViewFragmentListener) activity;
+            mListener = (VerbViewFragmentListener) context;
         } catch (ClassCastException e) {
-            throw new ClassCastException(activity.toString()
+            throw new ClassCastException(context.toString()
                     + " must implement VerbViewFragmentListener");
         }
     }
@@ -183,7 +194,8 @@ public class VerbViewFragment extends Fragment {
     }
 
     private void loadAd() {
-        PremiumManager premiumManager = new PremiumManager(requireContext());
+        if (mListener == null) return;
+        PremiumManager premiumManager = mListener.getPremiumManager();
         if (premiumManager.isPremium()) {
             mAdView.setVisibility(View.GONE);
         } else {
@@ -312,6 +324,7 @@ public class VerbViewFragment extends Fragment {
     public interface VerbViewFragmentListener {
         void onVerbViewFinished();
         BillingManager getBillingManager();
+        PremiumManager getPremiumManager();
         int getFavoritesCount();
         void onFavoriteChanged(boolean added);
     }
@@ -339,7 +352,7 @@ public class VerbViewFragment extends Fragment {
 
                 if (newFavoriteState) {
                     // Adding favorite - check limit
-                    PremiumManager premiumManager = new PremiumManager(getContext());
+                    PremiumManager premiumManager = mListener.getPremiumManager();
                     int currentCount = mListener.getFavoritesCount();
 
                     if (!premiumManager.canAddFavorite(currentCount)) {

@@ -4,10 +4,11 @@ import android.os.Bundle;
 import android.view.MenuItem;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.app.AppCompatDelegate;
 import androidx.appcompat.widget.Toolbar;
 import androidx.preference.ListPreference;
 import androidx.preference.PreferenceFragmentCompat;
+
+import com.alaruss.verbs.utils.ThemeHelper;
 
 public class SettingsActivity extends AppCompatActivity {
 
@@ -49,24 +50,9 @@ public class SettingsActivity extends AppCompatActivity {
             ListPreference themePreference = findPreference("pref_theme");
             if (themePreference != null) {
                 themePreference.setOnPreferenceChangeListener((preference, newValue) -> {
-                    applyTheme((String) newValue);
+                    ThemeHelper.applyTheme((String) newValue);
                     return true;
                 });
-            }
-        }
-
-        private void applyTheme(String themeValue) {
-            switch (themeValue) {
-                case "dark":
-                    AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
-                    break;
-                case "system":
-                    AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM);
-                    break;
-                case "light":
-                default:
-                    AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
-                    break;
             }
         }
 

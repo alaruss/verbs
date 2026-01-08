@@ -17,10 +17,22 @@ public class PremiumManager {
 
     private static final int DEFAULT_FAVORITES_LIMIT = 42;
 
+    private static volatile PremiumManager instance;
     private final SharedPreferences prefs;
 
-    public PremiumManager(Context context) {
-        prefs = createEncryptedPrefs(context.getApplicationContext());
+    public static PremiumManager getInstance(Context context) {
+        if (instance == null) {
+            synchronized (PremiumManager.class) {
+                if (instance == null) {
+                    instance = new PremiumManager(context.getApplicationContext());
+                }
+            }
+        }
+        return instance;
+    }
+
+    private PremiumManager(Context context) {
+        prefs = createEncryptedPrefs(context);
     }
 
     private SharedPreferences createEncryptedPrefs(Context context) {

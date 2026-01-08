@@ -30,7 +30,15 @@ public class PurchaseDialogHelper {
 
         TextView priceView = dialogView.findViewById(R.id.price_text);
         if (billingManager != null) {
-            priceView.setText(billingManager.getFormattedPrice());
+            String price = billingManager.getFormattedPrice();
+            if (price != null) {
+                priceView.setText(price);
+            } else {
+                // Hide price if unavailable - will be shown when billing is ready
+                priceView.setVisibility(View.GONE);
+            }
+        } else {
+            priceView.setVisibility(View.GONE);
         }
 
         new AlertDialog.Builder(activity)

@@ -109,7 +109,7 @@ public class MainActivity extends AppCompatActivity
         taskExecutor = new BackgroundTaskExecutor();
 
         // Initialize premium system
-        premiumManager = new PremiumManager(this);
+        premiumManager = PremiumManager.getInstance(this);
         billingManager = new BillingManager(this);
         billingManager.startConnection(this::updatePremiumMenuVisibility);
 
@@ -455,6 +455,11 @@ public class MainActivity extends AppCompatActivity
     @Override
     public BillingManager getBillingManager() {
         return billingManager;
+    }
+
+    @Override
+    public PremiumManager getPremiumManager() {
+        return premiumManager;
     }
 
     @Override

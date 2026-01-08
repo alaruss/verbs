@@ -1,8 +1,11 @@
 package com.alaruss.verbs.fragments;
 
 import android.app.Activity;
+import android.content.Context;
 import android.os.Build;
 import android.os.Bundle;
+
+import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.DividerItemDecoration;
@@ -83,10 +86,19 @@ public class VerbListFragment extends Fragment {
         }
         // Favorites refresh is now handled automatically by LiveData
 
-        // Refresh ad visibility in case premium status changed
+        // Resume ad and refresh visibility in case premium status changed
         if (mAdView != null) {
+            mAdView.resume();
             loadAd();
         }
+    }
+
+    @Override
+    public void onPause() {
+        if (mAdView != null) {
+            mAdView.pause();
+        }
+        super.onPause();
     }
 
     @Override
@@ -211,7 +223,8 @@ public class VerbListFragment extends Fragment {
     }
 
     private void loadAd() {
-        PremiumManager premiumManager = new PremiumManager(requireContext());
+        if (mListener == null) return;
+        PremiumManager premiumManager = mListener.getPremiumManager();
         if (premiumManager.isPremium()) {
             mAdView.setVisibility(View.GONE);
         } else {
@@ -247,12 +260,12 @@ public class VerbListFragment extends Fragment {
     }
 
     @Override
-    public void onAttach(Activity activity) {
-        super.onAttach(activity);
+    public void onAttach(@NonNull Context context) {
+        super.onAttach(context);
         try {
-            mListener = (VerbListFragmentListener) activity;
+            mListener = (VerbListFragmentListener) context;
         } catch (ClassCastException e) {
-            throw new ClassCastException(activity.toString()
+            throw new ClassCastException(context.toString()
                     + " must implement VerbListFragmentListener");
         }
     }
@@ -272,5 +285,6 @@ public class VerbListFragment extends Fragment {
 
     public interface VerbListFragmentListener {
         void onVerbListSelected(int verbId);
+        PremiumManager getPremiumManager();
     }
 }
