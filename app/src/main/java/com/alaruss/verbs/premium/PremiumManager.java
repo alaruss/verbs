@@ -9,7 +9,7 @@ public class PremiumManager {
     public static final String PREF_FAVORITES_LIMIT = "favorites_limit";
     public static final String PREF_PREMIUM_INITIALIZED = "premium_initialized";
 
-    private static final int DEFAULT_FAVORITES_LIMIT = 32;
+    private static final int DEFAULT_FAVORITES_LIMIT = 42;
 
     private final SharedPreferences prefs;
 
