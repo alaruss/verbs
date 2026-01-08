@@ -24,15 +24,15 @@ android {
         applicationId "com.alaruss.verbs"
         minSdkVersion 23
         targetSdkVersion 36
-        versionCode 15
-        versionName "1.6.0"
+        versionCode 16
+        versionName "1.7.0"
         vectorDrawables.useSupportLibrary = true
         multiDexEnabled = true
     }
     buildTypes {
         release {
             minifyEnabled true
-            shrinkResources true
+            shrinkResources false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             buildConfigField 'Boolean', 'enableCrashlytics', 'true'
             resValue "string", "app_name", "Verbs catalans"
