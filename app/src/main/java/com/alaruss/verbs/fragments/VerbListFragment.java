@@ -1,8 +1,11 @@
 package com.alaruss.verbs.fragments;
 
 import android.app.Activity;
+import android.content.Context;
 import android.os.Build;
 import android.os.Bundle;
+
+import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.DividerItemDecoration;
@@ -26,7 +29,10 @@ import com.alaruss.verbs.R;
 import com.alaruss.verbs.adapters.VerbRecyclerAdapter;
 import com.alaruss.verbs.databinding.FragmentVerbListBinding;
 import com.alaruss.verbs.models.Verb;
+import com.alaruss.verbs.premium.PremiumManager;
 import com.alaruss.verbs.viewmodels.VerbListViewModel;
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdView;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -40,6 +46,13 @@ public class VerbListFragment extends Fragment {
     private String filterQuery;
     private VerbListViewModel viewModel;
     private int searchDrawable, closeActiveDrawable, closeInactiveDrawable;
+    private AdView mAdView;
+    private boolean adLoaded = false;
+    private boolean lastKnownPremiumStatus = false;
+    // Store listener references for cleanup
+    private TextWatcher searchTextWatcher;
+    private View.OnTouchListener searchTouchListener;
+    private TextView.OnEditorActionListener searchEditorActionListener;
 
     public VerbListFragment() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
@@ -70,8 +83,24 @@ public class VerbListFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-        getActivity().setTitle(R.string.app_name);
+        if (getActivity() != null) {
+            getActivity().setTitle(R.string.app_name);
+        }
         // Favorites refresh is now handled automatically by LiveData
+
+        // Resume ad and refresh visibility in case premium status changed
+        if (mAdView != null) {
+            mAdView.resume();
+            loadAd();
+        }
+    }
+
+    @Override
+    public void onPause() {
+        if (mAdView != null) {
+            mAdView.pause();
+        }
+        super.onPause();
     }
 
     @Override
@@ -119,11 +148,9 @@ public class VerbListFragment extends Fragment {
                 mAdapter.setVerbs(verbs);
             }
         });
-        binding.searchList.addTextChangedListener(new TextWatcher() {
-
+        searchTextWatcher = new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-
             }
 
             @Override
@@ -145,10 +172,11 @@ public class VerbListFragment extends Fragment {
 
             @Override
             public void afterTextChanged(Editable s) {
-
             }
-        });
-        binding.searchList.setOnTouchListener(new View.OnTouchListener() {
+        };
+        binding.searchList.addTextChangedListener(searchTextWatcher);
+
+        searchTouchListener = new View.OnTouchListener() {
             final int DRAWABLE_LEFT = 0;
             final int DRAWABLE_RIGHT = 2;
 
@@ -171,10 +199,12 @@ public class VerbListFragment extends Fragment {
                 }
                 return false;
             }
-        });
-        binding.searchList.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+        };
+        binding.searchList.setOnTouchListener(searchTouchListener);
+
+        searchEditorActionListener = new TextView.OnEditorActionListener() {
             @Override
-            public boolean onEditorAction( TextView v, int actionId, KeyEvent event) {
+            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
                 if (actionId == EditorInfo.IME_ACTION_SEARCH) {
                     if (mAdapter.getItemCount() > 0) {
                         onVerbSelected(0);
@@ -183,24 +213,70 @@ public class VerbListFragment extends Fragment {
                 }
                 return false;
             }
-        });
+        };
+        binding.searchList.setOnEditorActionListener(searchEditorActionListener);
         binding.searchList.requestFocus();
+
+        // Initialize and load ads (only for non-premium users)
+        mAdView = binding.adView;
+        loadAd();
+
         return binding.getRoot();
+    }
+
+    private void loadAd() {
+        if (mListener == null || mAdView == null) return;
+        PremiumManager premiumManager = mListener.getPremiumManager();
+        boolean isPremium = premiumManager.isPremium();
+
+        if (isPremium) {
+            mAdView.setVisibility(View.GONE);
+            adLoaded = false;
+        } else {
+            mAdView.setVisibility(View.VISIBLE);
+            // Only load if not already loaded or premium status changed
+            if (!adLoaded || lastKnownPremiumStatus != isPremium) {
+                AdRequest adRequest = new AdRequest.Builder().build();
+                mAdView.loadAd(adRequest);
+                adLoaded = true;
+            }
+        }
+        lastKnownPremiumStatus = isPremium;
     }
 
     @Override
     public void onDestroyView() {
+        if (binding != null && binding.searchList != null) {
+            if (searchTextWatcher != null) {
+                binding.searchList.removeTextChangedListener(searchTextWatcher);
+                searchTextWatcher = null;
+            }
+            if (searchTouchListener != null) {
+                binding.searchList.setOnTouchListener(null);
+                searchTouchListener = null;
+            }
+            if (searchEditorActionListener != null) {
+                binding.searchList.setOnEditorActionListener(null);
+                searchEditorActionListener = null;
+            }
+        }
+        // Clean up AdView
+        if (mAdView != null) {
+            mAdView.destroy();
+            mAdView = null;
+        }
+        adLoaded = false;
         super.onDestroyView();
         binding = null;
     }
 
     @Override
-    public void onAttach(Activity activity) {
-        super.onAttach(activity);
+    public void onAttach(@NonNull Context context) {
+        super.onAttach(context);
         try {
-            mListener = (VerbListFragmentListener) activity;
+            mListener = (VerbListFragmentListener) context;
         } catch (ClassCastException e) {
-            throw new ClassCastException(activity.toString()
+            throw new ClassCastException(context.toString()
                     + " must implement VerbListFragmentListener");
         }
     }
@@ -220,5 +296,6 @@ public class VerbListFragment extends Fragment {
 
     public interface VerbListFragmentListener {
         void onVerbListSelected(int verbId);
+        PremiumManager getPremiumManager();
     }
 }

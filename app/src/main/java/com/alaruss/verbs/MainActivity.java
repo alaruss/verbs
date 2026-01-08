@@ -19,19 +19,26 @@ import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.activity.OnBackPressedCallback;
 import android.text.method.LinkMovementMethod;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.alaruss.verbs.databinding.ActivityMainBinding;
 import com.alaruss.verbs.fragments.VerbListFragment;
 import com.alaruss.verbs.fragments.VerbViewFragment;
+import com.alaruss.verbs.premium.BillingManager;
+import com.alaruss.verbs.premium.PremiumManager;
+import com.alaruss.verbs.premium.PurchaseDialogHelper;
 import com.alaruss.verbs.utils.BackgroundTaskExecutor;
 import com.google.firebase.analytics.FirebaseAnalytics;
 import com.google.firebase.crashlytics.FirebaseCrashlytics;
+
+import androidx.lifecycle.LiveData;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, VerbListFragment.VerbListFragmentListener,
@@ -47,6 +54,11 @@ public class MainActivity extends AppCompatActivity
     private BackgroundTaskExecutor taskExecutor;
     private ProgressDialog mProgressDialog;
     private ActivityMainBinding binding;
+    private BillingManager billingManager;
+    private PremiumManager premiumManager;
+    private LiveData<Integer> favoritesCountLiveData;
+    private int currentFavoritesCount = 0;
+    private static final String PREF_MIGRATION_IN_PROGRESS = "migration_in_progress";
 
     ActionBarDrawerToggle mDrawerToggle;
 
@@ -67,6 +79,9 @@ public class MainActivity extends AppCompatActivity
     protected void onDestroy() {
         if (taskExecutor != null) {
             taskExecutor.shutdown();
+        }
+        if (billingManager != null) {
+            billingManager.endConnection();
         }
         getSupportFragmentManager().removeOnBackStackChangedListener(mOnBackStackChangedListener);
         super.onDestroy();
@@ -96,6 +111,11 @@ public class MainActivity extends AppCompatActivity
         mApp = (MyApplication) getApplication();
         taskExecutor = new BackgroundTaskExecutor();
 
+        // Initialize premium system
+        premiumManager = PremiumManager.getInstance(this);
+        billingManager = new BillingManager(this);
+        billingManager.startConnection(this::updatePremiumMenuVisibility);
+
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
         setSupportActionBar(binding.appBarMain.toolbar);
@@ -104,13 +124,20 @@ public class MainActivity extends AppCompatActivity
                 this, binding.drawerLayout, binding.appBarMain.toolbar,
                 R.string.navigation_drawer_open, R.string.navigation_drawer_close);
 
-        mDrawerToggle.setToolbarNavigationClickListener(new View.OnClickListener() {
+        mDrawerToggle.setToolbarNavigationClickListener(v -> getOnBackPressedDispatcher().onBackPressed());
+        binding.drawerLayout.setDrawerListener(mDrawerToggle);
+
+        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
             @Override
-            public void onClick(View v) {
-                onBackPressed();
+            public void handleOnBackPressed() {
+                if (binding.drawerLayout.isDrawerOpen(GravityCompat.START)) {
+                    binding.drawerLayout.closeDrawer(GravityCompat.START);
+                } else {
+                    setEnabled(false);
+                    getOnBackPressedDispatcher().onBackPressed();
+                }
             }
         });
-        binding.drawerLayout.setDrawerListener(mDrawerToggle);
         mDrawerToggle.syncState();
 
         binding.navView.setNavigationItemSelectedListener(this);
@@ -136,6 +163,24 @@ public class MainActivity extends AppCompatActivity
             SharedPreferences prefs = getSharedPreferences(getPackageName(), Activity.MODE_PRIVATE);
             int lastMigration = prefs.getInt(PREF_DATA_MIGRATION, 0);
 
+            // Check if migration was interrupted
+            int migrationInProgress = prefs.getInt(PREF_MIGRATION_IN_PROGRESS, 0);
+            if (migrationInProgress > 0) {
+                // Previous migration was interrupted - check if data exists
+                int existingCount = mApp.getVerbRepository().getFavoritesCountSync();
+                if (existingCount > 0 || hasVerbsInDatabase()) {
+                    // Data exists, mark migration as complete
+                    prefs.edit()
+                            .putInt(PREF_DATA_MIGRATION, migrationInProgress)
+                            .putInt(PREF_MIGRATION_IN_PROGRESS, 0)
+                            .apply();
+                    lastMigration = migrationInProgress;
+                } else {
+                    // No data, clear the in-progress flag and retry
+                    prefs.edit().putInt(PREF_MIGRATION_IN_PROGRESS, 0).apply();
+                }
+            }
+
             if (lastMigration == 0 && !isFirstRun) {
                 lastMigration = 1;
             }
@@ -147,7 +192,8 @@ public class MainActivity extends AppCompatActivity
                 // The app was updated and the last migration was #1, so run #2.
                 runMigration(2, 2);
             } else {
-                // All migrations are complete, show the main list.
+                // All migrations are complete, initialize premium and show the main list.
+                initializePremiumSystem();
                 showList();
             }
 
@@ -159,14 +205,28 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
+    // Helper method to check if database has data
+    private boolean hasVerbsInDatabase() {
+        try {
+            return mApp.getVerbRepository().getAllVerbsSync().size() > 0;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
     @SuppressLint("ApplySharedPref")
     private void runMigration(int migrationType, int migrationNumber) {
+        // Mark migration as in-progress before starting
+        SharedPreferences prefs = getSharedPreferences(getPackageName(), Activity.MODE_PRIVATE);
+        prefs.edit().putInt(PREF_MIGRATION_IN_PROGRESS, migrationNumber).commit(); // Use commit() for immediate write
+
         // Show progress dialog
         mProgressDialog = new ProgressDialog(MainActivity.this);
         mProgressDialog.setMax(100);
         mProgressDialog.setTitle("Updating data...");
         mProgressDialog.setProgress(0);
         mProgressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+        mProgressDialog.setCancelable(false); // Prevent dismissal during migration
         mProgressDialog.show();
 
         taskExecutor.execute(
@@ -186,9 +246,12 @@ public class MainActivity extends AppCompatActivity
                     }
                 },
                 result -> {
-                    // Completion on main thread
-                    SharedPreferences prefs = getSharedPreferences(getPackageName(), Activity.MODE_PRIVATE);
-                    prefs.edit().putInt(PREF_DATA_MIGRATION, migrationNumber).apply();
+                    // Completion on main thread: Clear in-progress flag and set completed
+                    SharedPreferences completionPrefs = getSharedPreferences(getPackageName(), Activity.MODE_PRIVATE);
+                    completionPrefs.edit()
+                            .putInt(PREF_DATA_MIGRATION, migrationNumber)
+                            .putInt(PREF_MIGRATION_IN_PROGRESS, 0)
+                            .apply();
                     if (mProgressDialog != null) {
                         mProgressDialog.dismiss();
                         mProgressDialog = null;
@@ -198,20 +261,10 @@ public class MainActivity extends AppCompatActivity
         );
     }
 
-
     @Override
     public void onSaveInstanceState(@NonNull Bundle outState) {
         outState.putInt(VERB_ID, mCurrentVerbId);
         super.onSaveInstanceState(outState);
-    }
-
-    @Override
-    public void onBackPressed() {
-        if (binding.drawerLayout.isDrawerOpen(GravityCompat.START)) {
-            binding.drawerLayout.closeDrawer(GravityCompat.START);
-        } else {
-            super.onBackPressed();
-        }
     }
 
     @Override
@@ -227,7 +280,7 @@ public class MainActivity extends AppCompatActivity
                 mDrawerToggle.onOptionsItemSelected(item)) {
             return true;
         } else if (id == android.R.id.home) {
-            onBackPressed();
+            getOnBackPressedDispatcher().onBackPressed();
             return true;
         } else {
             if (id == R.id.action_search) {
@@ -263,6 +316,38 @@ public class MainActivity extends AppCompatActivity
         } else if (id == R.id.nav_preferences) {
             Intent intent = new Intent(this, SettingsActivity.class);
             startActivity(intent);
+        } else if (id == R.id.nav_buy_premium) {
+            PurchaseDialogHelper.showPurchaseDialog(this, billingManager, null,
+                    premiumManager.getFavoritesLimit(),
+                    new PurchaseDialogHelper.PurchaseDialogCallback() {
+                        @Override
+                        public void onBuyClicked() {
+                            if (billingManager != null) {
+                                billingManager.launchPurchaseFlow(MainActivity.this,
+                                        new BillingManager.PurchaseCallback() {
+                                            @Override
+                                            public void onPurchaseSuccess() {
+                                                updatePremiumMenuVisibility();
+                                            }
+
+                                            @Override
+                                            public void onPurchaseFailed(String error) {
+                                                Toast.makeText(MainActivity.this, error, Toast.LENGTH_SHORT).show();
+                                            }
+
+                                            @Override
+                                            public void onPurchaseCancelled() {
+                                                // Do nothing
+                                            }
+                                        });
+                            }
+                        }
+
+                        @Override
+                        public void onCancelled() {
+                            // Do nothing
+                        }
+                    });
         }
 
         binding.drawerLayout.closeDrawer(GravityCompat.START);
@@ -334,6 +419,51 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onResume() {
         super.onResume();
+        updatePremiumMenuVisibility();
+    }
+
+    // Premium system methods
+
+    private void initializePremiumSystem() {
+        // Set up LiveData observation for favorites count (only once)
+        if (favoritesCountLiveData == null) {
+            favoritesCountLiveData = mApp.getVerbRepository().getFavoritesCount();
+            favoritesCountLiveData.observe(this, count -> {
+                if (count != null) {
+                    currentFavoritesCount = count;
+                    // Initialize premium manager on first count if not already done
+                    if (!premiumManager.isInitialized()) {
+                        premiumManager.initializeFavoritesLimit(count);
+                    }
+                }
+            });
+        }
+    }
+
+    private void updatePremiumMenuVisibility() {
+        MenuItem premiumItem = binding.navView.getMenu().findItem(R.id.nav_buy_premium);
+        if (premiumItem != null) {
+            premiumItem.setVisible(!premiumManager.isPremium());
+        }
+    }
+
+    @Override
+    public BillingManager getBillingManager() {
+        return billingManager;
+    }
+
+    @Override
+    public PremiumManager getPremiumManager() {
+        return premiumManager;
+    }
+
+    @Override
+    public int getFavoritesCount() {
+        return currentFavoritesCount;
+    }
+
+    @Override
+    public void onFavoriteChanged(boolean added) {
     }
 
 }

@@ -5,7 +5,10 @@ import android.view.MenuItem;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.preference.ListPreference;
 import androidx.preference.PreferenceFragmentCompat;
+
+import com.alaruss.verbs.utils.ThemeHelper;
 
 public class SettingsActivity extends AppCompatActivity {
 
@@ -43,6 +46,14 @@ public class SettingsActivity extends AppCompatActivity {
         @Override
         public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
             setPreferencesFromResource(R.xml.preferences, rootKey);
+
+            ListPreference themePreference = findPreference("pref_theme");
+            if (themePreference != null) {
+                themePreference.setOnPreferenceChangeListener((preference, newValue) -> {
+                    ThemeHelper.applyTheme((String) newValue);
+                    return true;
+                });
+            }
         }
 
         @Override

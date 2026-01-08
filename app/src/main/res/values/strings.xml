@@ -40,4 +40,18 @@
     <string name="share_text">Conjugació dels verbs catalans: http://play.google.com/store/apps/details?id=com.alaruss.verbs</string>
     <string name="ddd">pref_translationLanguage</string>
     <string name="translation_edit_title">Canvi la traducció</string>
+
+    <!-- Premium -->
+    <string name="nav_buy_premium">Comprar Premium</string>
+    <string name="premium_title">Premium</string>
+    <string name="premium_unlock_message">Desbloqueja totes les funcions</string>
+    <string name="premium_benefits_title">Beneficis Premium:</string>
+    <string name="premium_benefit_no_ads">Sense anuncis</string>
+    <string name="premium_benefit_favorites">Favorits il·limitats (ara només %d)</string>
+    <string name="premium_price_default">1,00 €</string>
+    <string name="buy_button">Comprar</string>
+    <string name="favorites_limit_message">Has arribat al límit de %d favorits. Compra Premium per favorits il·limitats.</string>
+
+    <!-- Theme -->
+    <string name="pref_theme_title">Tema</string>
 </resources>

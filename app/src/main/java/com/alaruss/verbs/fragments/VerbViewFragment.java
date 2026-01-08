@@ -1,10 +1,12 @@
 package com.alaruss.verbs.fragments;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
-import android.os.Build;
 import android.os.Bundle;
+
+import androidx.annotation.NonNull;
 import androidx.preference.PreferenceManager;
 import com.google.android.material.tabs.TabLayout;
 import androidx.fragment.app.Fragment;
@@ -21,10 +23,16 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.alaruss.verbs.R;
 import com.alaruss.verbs.models.Verb;
+import com.alaruss.verbs.premium.BillingManager;
+import com.alaruss.verbs.premium.PremiumManager;
+import com.alaruss.verbs.premium.PurchaseDialogHelper;
 import com.alaruss.verbs.viewmodels.VerbDetailViewModel;
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdView;
 
 
 public class VerbViewFragment extends Fragment {
@@ -35,15 +43,13 @@ public class VerbViewFragment extends Fragment {
     private int starDrawable, starInactiveDrawable;
     private SectionPagerAdapter mAdapter;
     private ViewPager mViewPager;
+    private AdView mAdView;
+    private boolean adLoaded = false;
+    private boolean lastKnownPremiumStatus = false;
 
     public VerbViewFragment() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            starDrawable = R.drawable.ic_star;
-            starInactiveDrawable = R.drawable.ic_star_inactive;
-        } else {
-            starDrawable = android.R.drawable.star_big_on;
-            starInactiveDrawable = android.R.drawable.star_big_off;
-        }
+        starDrawable = R.drawable.ic_star;
+        starInactiveDrawable = R.drawable.ic_star_inactive;
     }
 
 
@@ -55,19 +61,31 @@ public class VerbViewFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-        if (mVerb != null) {
+        if (mVerb != null && getActivity() != null) {
             getActivity().setTitle(mVerb.getInfinitive());
         }
-//        mTranslateView.setText(getTranslationText());
+        // Resume ad and refresh visibility in case premium status changed
+        if (mAdView != null) {
+            mAdView.resume();
+            loadAd();
+        }
     }
 
     @Override
-    public void onAttach(Activity activity) {
-        super.onAttach(activity);
+    public void onPause() {
+        if (mAdView != null) {
+            mAdView.pause();
+        }
+        super.onPause();
+    }
+
+    @Override
+    public void onAttach(@NonNull Context context) {
+        super.onAttach(context);
         try {
-            mListener = (VerbViewFragmentListener) activity;
+            mListener = (VerbViewFragmentListener) context;
         } catch (ClassCastException e) {
-            throw new ClassCastException(activity.toString()
+            throw new ClassCastException(context.toString()
                     + " must implement VerbViewFragmentListener");
         }
     }
@@ -85,28 +103,28 @@ public class VerbViewFragment extends Fragment {
             mListener.onVerbViewFinished();
         } else {
             viewModel.setVerbId(verbId);
-
-            // Observe verb changes
-            viewModel.getVerb().observe(this, verb -> {
-                if (verb != null) {
-                    mVerb = verb;
-                    // Update last access when verb is loaded
-                    viewModel.updateLastAccess(verb);
-                    // Refresh UI if already created
-                    if (mTranslateView != null) {
-                        mTranslateView.setText(getTranslationText());
-                    }
-                    if (mAdapter != null) {
-                        mAdapter.notifyDataSetChanged();
-                    }
-                    if (mVerb != null) {
-                         getActivity().setTitle(mVerb.getInfinitive());
-                    }
-                    // Update options menu
-                    getActivity().invalidateOptionsMenu();
-                }
-            });
         }
+    }
+
+    private void setupVerbObserver() {
+        viewModel.getVerb().observe(getViewLifecycleOwner(), verb -> {
+            if (verb != null) {
+                mVerb = verb;
+                // Update last access when verb is loaded
+                viewModel.updateLastAccess(verb);
+                if (mTranslateView != null) {
+                    mTranslateView.setText(getTranslationText());
+                }
+                if (mAdapter != null) {
+                    mAdapter.notifyDataSetChanged();
+                }
+                Activity activity = getActivity();
+                if (activity != null && mVerb != null) {
+                    activity.setTitle(mVerb.getInfinitive());
+                    activity.invalidateOptionsMenu();
+                }
+            }
+        });
     }
 
     @Override
@@ -128,13 +146,15 @@ public class VerbViewFragment extends Fragment {
 
                 if (action == MotionEvent.ACTION_DOWN) {
                     if (mVerb == null) return false;
+                    Activity activity = getActivity();
+                    if (activity == null) return false;
                     int leftEdgeOfRightDrawable = mTranslateView.getRight()
                             - mTranslateView.getCompoundDrawables()[DRAWABLE_RIGHT].getBounds().width();
                     if (event.getRawX() >= leftEdgeOfRightDrawable) {
 
-                        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-                        LayoutInflater inflater = getActivity().getLayoutInflater();
-                        View dialogView = inflater.inflate(R.layout.dialog_translation_edit, null);
+                        AlertDialog.Builder builder = new AlertDialog.Builder(activity);
+                        LayoutInflater dialogInflater = activity.getLayoutInflater();
+                        View dialogView = dialogInflater.inflate(R.layout.dialog_translation_edit, null);
                         final EditText translationEdit = (EditText) dialogView.findViewById(R.id.translation_edit);
                         final String currentTranslation = getTranslationText();
                         translationEdit.setText(currentTranslation);
@@ -163,14 +183,43 @@ public class VerbViewFragment extends Fragment {
                 return false;
             }
         });
+
+        // Initialize and load ads (only for non-premium users)
+        mAdView = view.findViewById(R.id.adView);
+        loadAd();
+
+        if (viewModel.getVerbId() > 0) {
+            setupVerbObserver();
+        }
+
         return view;
     }
 
+    private void loadAd() {
+        if (mListener == null || mAdView == null) return;
+        PremiumManager premiumManager = mListener.getPremiumManager();
+        boolean isPremium = premiumManager.isPremium();
+
+        if (isPremium) {
+            mAdView.setVisibility(View.GONE);
+            adLoaded = false;
+        } else {
+            mAdView.setVisibility(View.VISIBLE);
+            // Only load if not already loaded or premium status changed
+            if (!adLoaded || lastKnownPremiumStatus != isPremium) {
+                AdRequest adRequest = new AdRequest.Builder().build();
+                mAdView.loadAd(adRequest);
+                adLoaded = true;
+            }
+        }
+        lastKnownPremiumStatus = isPremium;
+    }
+
     private String getTranslationText() {
-        if (mVerb == null) {
+        if (mVerb == null || getContext() == null) {
             return "";
         }
-        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(getActivity());
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(requireContext());
         String translationLanguage = sharedPref.getString(getString(R.string.pref_translationLanguage), getString(R.string.pref_translationLanguage_default));
         String translation;
         if (translationLanguage.equals("en")) {
@@ -182,17 +231,19 @@ public class VerbViewFragment extends Fragment {
     }
 
     private void setTranslationText(String text) {
-        if (mVerb == null) {
+        if (mVerb == null || getContext() == null) {
             return;
         }
-        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(getActivity());
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(requireContext());
         String translationLanguage = sharedPref.getString(getString(R.string.pref_translationLanguage), getString(R.string.pref_translationLanguage_default));
         if (translationLanguage.equals("en")) {
             viewModel.updateTranslationEn(mVerb, text);
         } else {
             viewModel.updateTranslationEs(mVerb, text);
         }
-        mTranslateView.setText(text);
+        if (mTranslateView != null) {
+            mTranslateView.setText(text);
+        }
     }
 
     private class SectionPagerAdapter extends PagerAdapter {
@@ -203,11 +254,15 @@ public class VerbViewFragment extends Fragment {
 
         @Override
         public Object instantiateItem(ViewGroup collection, int position) {
-            LayoutInflater inflater = getActivity().getLayoutInflater();
+            Activity activity = getActivity();
+            if (activity == null) {
+                return new View(requireContext()); // Safeguard with context
+            }
+            LayoutInflater inflater = activity.getLayoutInflater();
             View view;
             if (mVerb == null) {
                 // This shouldn't be called if getCount is 0 but as a safeguard.
-                return new View(getActivity());
+                return new View(activity);
             }
             switch (position) {
                 case 0:
@@ -278,6 +333,10 @@ public class VerbViewFragment extends Fragment {
 
     public interface VerbViewFragmentListener {
         void onVerbViewFinished();
+        BillingManager getBillingManager();
+        PremiumManager getPremiumManager();
+        int getFavoritesCount();
+        void onFavoriteChanged(boolean added);
     }
 
     @Override
@@ -300,16 +359,98 @@ public class VerbViewFragment extends Fragment {
         if (id == R.id.action_favorite) {
             if (mVerb != null) {
                 boolean newFavoriteState = !mVerb.isFavorite();
-                viewModel.updateFavorite(mVerb, newFavoriteState);
+
                 if (newFavoriteState) {
-                    item.setIcon(starDrawable);
-                } else {
-                    item.setIcon(starInactiveDrawable);
+                    // Adding favorite - check limit
+                    PremiumManager premiumManager = mListener.getPremiumManager();
+                    int currentCount = mListener.getFavoritesCount();
+
+                    if (!premiumManager.canAddFavorite(currentCount)) {
+                        // Show purchase dialog
+                        Activity activity = getActivity();
+                        if (activity == null || mListener == null) return true;
+                        PurchaseDialogHelper.showFavoritesLimitDialog(
+                                activity,
+                                mListener.getBillingManager(),
+                                premiumManager.getFavoritesLimit(),
+                                new PurchaseDialogHelper.PurchaseDialogCallback() {
+                                    @Override
+                                    public void onBuyClicked() {
+                                        Activity currentActivity = getActivity();
+                                        if (currentActivity == null || mListener == null) return;
+                                        BillingManager billingManager = mListener.getBillingManager();
+                                        if (billingManager != null) {
+                                            billingManager.launchPurchaseFlow(currentActivity,
+                                                    new BillingManager.PurchaseCallback() {
+                                                        @Override
+                                                        public void onPurchaseSuccess() {
+                                                            // After purchase, add the favorite
+                                                            toggleFavorite(item, true);
+                                                        }
+
+                                                        @Override
+                                                        public void onPurchaseFailed(String error) {
+                                                            if (getContext() != null) {
+                                                                Toast.makeText(getContext(), error, Toast.LENGTH_SHORT).show();
+                                                            }
+                                                        }
+
+                                                        @Override
+                                                        public void onPurchaseCancelled() {
+                                                            // Do nothing
+                                                        }
+                                                    });
+                                        }
+                                    }
+
+                                    @Override
+                                    public void onCancelled() {
+                                        // Do nothing
+                                    }
+                                });
+                        return true;
+                    }
                 }
+
+                // Proceed with toggle
+                toggleFavorite(item, newFavoriteState);
             }
             return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    private void toggleFavorite(MenuItem item, boolean newFavoriteState) {
+        viewModel.updateFavorite(mVerb, newFavoriteState);
+        if (newFavoriteState) {
+            item.setIcon(starDrawable);
+        } else {
+            item.setIcon(starInactiveDrawable);
+        }
+        // Notify listener to update favorites count
+        if (mListener != null) {
+            mListener.onFavoriteChanged(newFavoriteState);
+        }
+    }
+
+    @Override
+    public void onDestroyView() {
+        if (mAdView != null) {
+            mAdView.destroy();
+            mAdView = null;
+        }
+        adLoaded = false;
+        // Nullify view references
+        mTranslateView = null;
+        mViewPager = null;
+        mAdapter = null;
+        super.onDestroyView();
+    }
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
+        mListener = null;
     }
 
 }

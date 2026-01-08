@@ -220,7 +220,14 @@ public class Verb {
             return;
         }
         String[] temps = data.split("\\|");
+        if (temps.length < 10) {
+            // Data is malformed, skip parsing to avoid crash
+            return;
+        }
         participi = temps[0].split(",");
+        if (participi.length == 0) {
+            participi = new String[]{""};
+        }
         gerundi = temps[1];
         indPresent = new Tiempo(temps[2]);
         indPassatSimple = new Tiempo(temps[3]);
