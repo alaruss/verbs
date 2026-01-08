@@ -3,6 +3,12 @@ package com.alaruss.verbs.premium;
 import android.content.Context;
 import android.content.SharedPreferences;
 
+import androidx.security.crypto.EncryptedSharedPreferences;
+import androidx.security.crypto.MasterKey;
+
+import java.io.IOException;
+import java.security.GeneralSecurityException;
+
 public class PremiumManager {
     private static final String PREF_NAME = "premium_prefs";
     public static final String PREF_IS_PREMIUM = "is_premium";
@@ -14,7 +20,26 @@ public class PremiumManager {
     private final SharedPreferences prefs;
 
     public PremiumManager(Context context) {
-        prefs = context.getApplicationContext().getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
+        prefs = createEncryptedPrefs(context.getApplicationContext());
+    }
+
+    private SharedPreferences createEncryptedPrefs(Context context) {
+        try {
+            MasterKey masterKey = new MasterKey.Builder(context)
+                    .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
+                    .build();
+
+            return EncryptedSharedPreferences.create(
+                    context,
+                    PREF_NAME,
+                    masterKey,
+                    EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+                    EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+            );
+        } catch (GeneralSecurityException | IOException e) {
+            // Fallback to regular SharedPreferences if encryption fails
+            return context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
+        }
     }
 
     public boolean isPremium() {
