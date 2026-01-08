@@ -31,27 +31,10 @@
         android:layout_marginBottom="4dp" />
 
     <TextView
+        android:id="@+id/benefit_favorites"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/premium_benefit_favorites"
-        android:textSize="14sp"
-        android:drawableStart="@android:drawable/checkbox_on_background"
-        android:drawablePadding="8dp"
-        android:layout_marginBottom="4dp" />
-
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/premium_benefit_dark_theme"
-        android:textSize="14sp"
-        android:drawableStart="@android:drawable/checkbox_on_background"
-        android:drawablePadding="8dp"
-        android:layout_marginBottom="4dp" />
-
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/premium_benefit_system_theme"
         android:textSize="14sp"
         android:drawableStart="@android:drawable/checkbox_on_background"
         android:drawablePadding="8dp"

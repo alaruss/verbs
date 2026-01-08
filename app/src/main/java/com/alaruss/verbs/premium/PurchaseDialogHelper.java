@@ -17,13 +17,16 @@ public class PurchaseDialogHelper {
     }
 
     public static void showPurchaseDialog(Activity activity, BillingManager billingManager,
-                                           String customMessage, PurchaseDialogCallback callback) {
+                                           String customMessage, int favoritesLimit, PurchaseDialogCallback callback) {
         View dialogView = LayoutInflater.from(activity).inflate(R.layout.dialog_purchase, null);
 
         TextView messageView = dialogView.findViewById(R.id.dialog_message);
         if (customMessage != null) {
             messageView.setText(customMessage);
         }
+
+        TextView favoritesView = dialogView.findViewById(R.id.benefit_favorites);
+        favoritesView.setText(activity.getString(R.string.premium_benefit_favorites, favoritesLimit));
 
         TextView priceView = dialogView.findViewById(R.id.price_text);
         if (billingManager != null) {
@@ -49,12 +52,6 @@ public class PurchaseDialogHelper {
     public static void showFavoritesLimitDialog(Activity activity, BillingManager billingManager,
                                                   int limit, PurchaseDialogCallback callback) {
         String message = activity.getString(R.string.favorites_limit_message, limit);
-        showPurchaseDialog(activity, billingManager, message, callback);
-    }
-
-    public static void showThemePurchaseDialog(Activity activity, BillingManager billingManager,
-                                                 PurchaseDialogCallback callback) {
-        String message = activity.getString(R.string.theme_requires_premium);
-        showPurchaseDialog(activity, billingManager, message, callback);
+        showPurchaseDialog(activity, billingManager, message, limit, callback);
     }
 }

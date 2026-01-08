@@ -315,6 +315,7 @@ public class MainActivity extends AppCompatActivity
             startActivity(intent);
         } else if (id == R.id.nav_buy_premium) {
             PurchaseDialogHelper.showPurchaseDialog(this, billingManager, null,
+                    premiumManager.getFavoritesLimit(),
                     new PurchaseDialogHelper.PurchaseDialogCallback() {
                         @Override
                         public void onBuyClicked() {

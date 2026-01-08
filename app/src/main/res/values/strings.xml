@@ -47,13 +47,10 @@
     <string name="premium_unlock_message">Desbloqueja totes les funcions</string>
     <string name="premium_benefits_title">Beneficis Premium:</string>
     <string name="premium_benefit_no_ads">Sense anuncis</string>
-    <string name="premium_benefit_favorites">Favorits il·limitats</string>
-    <string name="premium_benefit_dark_theme">Tema fosc</string>
-    <string name="premium_benefit_system_theme">Tema del sistema</string>
+    <string name="premium_benefit_favorites">Favorits il·limitats (ara només %d)</string>
     <string name="premium_price_default">1,00 €</string>
     <string name="buy_button">Comprar</string>
     <string name="favorites_limit_message">Has arribat al límit de %d favorits. Compra Premium per favorits il·limitats.</string>
-    <string name="theme_requires_premium">El tema seleccionat requereix Premium</string>
 
     <!-- Theme -->
     <string name="pref_theme_title">Tema</string>

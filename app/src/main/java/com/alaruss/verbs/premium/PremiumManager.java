@@ -52,8 +52,4 @@ public class PremiumManager {
                 .putBoolean(PREF_PREMIUM_INITIALIZED, true)
                 .apply();
     }
-
-    public boolean canChangeTheme() {
-        return isPremium();
-    }
 }

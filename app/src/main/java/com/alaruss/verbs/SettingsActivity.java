@@ -2,22 +2,14 @@ package com.alaruss.verbs;
 
 import android.os.Bundle;
 import android.view.MenuItem;
-import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.appcompat.widget.Toolbar;
 import androidx.preference.ListPreference;
-import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
 
-import com.alaruss.verbs.premium.BillingManager;
-import com.alaruss.verbs.premium.PremiumManager;
-import com.alaruss.verbs.premium.PurchaseDialogHelper;
-
 public class SettingsActivity extends AppCompatActivity {
-
-    private BillingManager billingManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,23 +24,12 @@ public class SettingsActivity extends AppCompatActivity {
             getSupportActionBar().setHomeButtonEnabled(true);
         }
 
-        billingManager = new BillingManager(this);
-        billingManager.startConnection(null);
-
         if (savedInstanceState == null) {
             getSupportFragmentManager()
                     .beginTransaction()
                     .replace(R.id.settings_container, new SettingsFragment())
                     .commit();
         }
-    }
-
-    @Override
-    protected void onDestroy() {
-        if (billingManager != null) {
-            billingManager.endConnection();
-        }
-        super.onDestroy();
     }
 
     @Override
@@ -60,10 +41,6 @@ public class SettingsActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    public BillingManager getBillingManager() {
-        return billingManager;
-    }
-
     public static class SettingsFragment extends PreferenceFragmentCompat {
         @Override
         public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
@@ -71,68 +48,9 @@ public class SettingsActivity extends AppCompatActivity {
 
             ListPreference themePreference = findPreference("pref_theme");
             if (themePreference != null) {
-                // Use entries without "(Premium)" suffix for premium users
-                PremiumManager premiumManager = new PremiumManager(getContext());
-                if (premiumManager.isPremium()) {
-                    themePreference.setEntries(R.array.pref_theme_entries_premium);
-                }
-
-                themePreference.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
-                    @Override
-                    public boolean onPreferenceChange(Preference preference, Object newValue) {
-                        String themeValue = (String) newValue;
-                        PremiumManager premiumManager = new PremiumManager(getContext());
-
-                        // Light theme is always free
-                        if ("light".equals(themeValue)) {
-                            applyTheme(themeValue);
-                            return true;
-                        }
-
-                        // Dark/System themes require premium
-                        if (!premiumManager.isPremium()) {
-                            SettingsActivity activity = (SettingsActivity) getActivity();
-                            PurchaseDialogHelper.showThemePurchaseDialog(
-                                    activity,
-                                    activity.getBillingManager(),
-                                    new PurchaseDialogHelper.PurchaseDialogCallback() {
-                                        @Override
-                                        public void onBuyClicked() {
-                                            BillingManager billingManager = activity.getBillingManager();
-                                            if (billingManager != null) {
-                                                billingManager.launchPurchaseFlow(activity,
-                                                        new BillingManager.PurchaseCallback() {
-                                                            @Override
-                                                            public void onPurchaseSuccess() {
-                                                                // After purchase, apply the theme
-                                                                themePreference.setValue(themeValue);
-                                                                applyTheme(themeValue);
-                                                            }
-
-                                                            @Override
-                                                            public void onPurchaseFailed(String error) {
-                                                                Toast.makeText(activity, error, Toast.LENGTH_SHORT).show();
-                                                            }
-
-                                                            @Override
-                                                            public void onPurchaseCancelled() {
-                                                                // Do nothing
-                                                            }
-                                                        });
-                                            }
-                                        }
-
-                                        @Override
-                                        public void onCancelled() {
-                                            // Do nothing
-                                        }
-                                    });
-                            return false; // Don't change preference yet
-                        }
-
-                        applyTheme(themeValue);
-                        return true;
-                    }
+                themePreference.setOnPreferenceChangeListener((preference, newValue) -> {
+                    applyTheme((String) newValue);
+                    return true;
                 });
             }
         }

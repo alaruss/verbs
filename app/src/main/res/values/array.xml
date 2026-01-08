@@ -11,11 +11,6 @@
 
     <string-array name="pref_theme_entries">
         <item>Clar</item>
-        <item>Fosc (Premium)</item>
-        <item>Sistema (Premium)</item>
-    </string-array>
-    <string-array name="pref_theme_entries_premium">
-        <item>Clar</item>
         <item>Fosc</item>
         <item>Sistema</item>
     </string-array>
