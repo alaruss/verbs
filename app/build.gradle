@@ -24,8 +24,8 @@ android {
         applicationId "com.alaruss.verbs"
         minSdkVersion 23
         targetSdkVersion 36
-        versionCode 16
-        versionName "1.7.0"
+        versionCode 17
+        versionName "1.7.1"
         vectorDrawables.useSupportLibrary = true
         multiDexEnabled = true
     }
