@@ -302,4 +302,7 @@ public class Verb {
         this.accessCount = accessCount;
     }
 
+    public void incAccessCount() {
+        this.accessCount ++;
+    }
 }

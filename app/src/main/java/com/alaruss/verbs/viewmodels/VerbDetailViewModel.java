@@ -13,6 +13,8 @@ import android.util.Log;
 import com.alaruss.verbs.db.VerbRepository;
 import com.alaruss.verbs.models.Verb;
 
+import java.util.Date;
+
 public class VerbDetailViewModel extends AndroidViewModel {
     private static final String TAG = "VerbDetailViewModel";
     private final VerbRepository repository;
@@ -56,8 +58,10 @@ public class VerbDetailViewModel extends AndroidViewModel {
 
     public void updateLastAccess(Verb verb) {
         if (verb != null) {
+            verb.setLastAccess(new Date());
+            verb.incAccessCount();
             repository.updateLastAccess(verb, () -> {
-                Log.d(TAG, "Last access updated for verb: " + verb.getInfinitive());
+                Log.d(TAG, "Last access updated for verb: " + verb.getInfinitive() + " -> " + verb.getLastAccess() + " total -> " + verb.getAccessCount());
             });
         }
     }

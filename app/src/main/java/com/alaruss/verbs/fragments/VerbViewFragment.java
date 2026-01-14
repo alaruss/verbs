@@ -8,12 +8,16 @@ import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.preference.PreferenceManager;
+
 import com.google.android.material.tabs.TabLayout;
+
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.viewpager.widget.PagerAdapter;
 import androidx.viewpager.widget.ViewPager;
 import androidx.appcompat.app.AlertDialog;
+
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -109,19 +113,22 @@ public class VerbViewFragment extends Fragment {
     private void setupVerbObserver() {
         viewModel.getVerb().observe(getViewLifecycleOwner(), verb -> {
             if (verb != null) {
+                boolean isNewVerb = (mVerb == null || mVerb.getId() != verb.getId());
                 mVerb = verb;
-                // Update last access when verb is loaded
-                viewModel.updateLastAccess(verb);
-                if (mTranslateView != null) {
-                    mTranslateView.setText(getTranslationText());
-                }
-                if (mAdapter != null) {
-                    mAdapter.notifyDataSetChanged();
-                }
-                Activity activity = getActivity();
-                if (activity != null && mVerb != null) {
-                    activity.setTitle(mVerb.getInfinitive());
-                    activity.invalidateOptionsMenu();
+                if (isNewVerb) {
+                    // Update last access when verb is loaded
+                    viewModel.updateLastAccess(verb);
+                    if (mTranslateView != null) {
+                        mTranslateView.setText(getTranslationText());
+                    }
+                    if (mAdapter != null) {
+                        mAdapter.notifyDataSetChanged();
+                    }
+                    Activity activity = getActivity();
+                    if (activity != null && mVerb != null) {
+                        activity.setTitle(mVerb.getInfinitive());
+                        activity.invalidateOptionsMenu();
+                    }
                 }
             }
         });
