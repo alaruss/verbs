@@ -41,6 +41,15 @@ public class Verb {
     private String[] participi;
     private String gerundi;
 
+    public Verb() {
+    }
+
+    private static String stripDiacritics(String str) {
+        str = Normalizer.normalize(str, Normalizer.Form.NFD);
+        str = str.replaceAll("[\\p{InCombiningDiacriticalMarks}]", "");
+        return str;
+    }
+
     public TiempoCompost getComPassatAnterior() {
         return comPassatAnterior;
     }
@@ -67,10 +76,6 @@ public class Verb {
 
     public TiempoCompost getComSubPassaAnteriorPerifrastic() {
         return comSubPassaAnteriorPerifrastic;
-    }
-
-
-    public Verb() {
     }
 
     public Tiempo getIndPresent() {
@@ -129,56 +134,16 @@ public class Verb {
         return comSubPerfet;
     }
 
-    public class Tiempo {
-        protected String[] forms;
-
-        public Tiempo(String data) {
-            forms = data.split(",");
-            if (forms.length == 0) {
-                forms = new String[6];
-            }
-        }
-
-        public String toString() {
-            StringBuilder builder = new StringBuilder();
-            for (String i : forms) {
-                if (i != null) {
-                    builder.append(i);
-                } else {
-                    builder.append("-");
-                }
-                builder.append("\n");
-            }
-            return builder.toString();
-        }
-
-    }
-
-    public class TiempoCompost extends Tiempo {
-        private String base;
-
-        public TiempoCompost(String data, String base) {
-            super(data);
-            this.base = base;
-        }
-
-        public String toString() {
-            StringBuilder builder = new StringBuilder();
-            for (String i : forms) {
-                builder.append(i).append(" ").append(base).append("\n");
-            }
-            return builder.toString();
-        }
-    }
-
-    private static String stripDiacritics(String str) {
-        str = Normalizer.normalize(str, Normalizer.Form.NFD);
-        str = str.replaceAll("[\\p{InCombiningDiacriticalMarks}]", "");
-        return str;
-    }
-
     public int getId() {
         return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public String getInfinitive() {
+        return infinitive;
     }
 
     public void setInfinitive(String s) {
@@ -186,33 +151,8 @@ public class Verb {
         this.infinitiveWODiacritics = stripDiacritics(s);
     }
 
-    public void setId(int id) {
-        this.id = id;
-    }
-
-    public void setFavorite(int i) {
-        this.isFavorite = i != 0;
-    }
-
-    public String getInfinitive() {
-        return infinitive;
-    }
-
     public boolean containsWord(String s) {
         return this.infinitiveWODiacritics.startsWith(s);
-    }
-
-    public void setData(String data) {
-        this.data = data;
-        this.parseData();
-    }
-
-    public void setTranslationEn(String translation) {
-        this.translationEn = translation;
-    }
-
-    public void setTranslationEs(String translation) {
-        this.translationEs = translation;
     }
 
     public void parseData() {
@@ -258,6 +198,10 @@ public class Verb {
         }
     }
 
+    public void setTranslationEn(String translation) {
+        this.translationEn = translation;
+    }
+
     public String getTranslationEs() {
         if (this.translationEs == null) {
             return "";
@@ -266,8 +210,21 @@ public class Verb {
         }
     }
 
+    public void setTranslationEs(String translation) {
+        this.translationEs = translation;
+    }
+
     public String getData() {
         return data;
+    }
+
+    public void setData(String data) {
+        this.data = data;
+        this.parseData();
+    }
+
+    public Date getLastAccess() {
+        return lastAccess;
     }
 
     public void setLastAccess(Date date) {
@@ -278,16 +235,16 @@ public class Verb {
         lastAccess = new Date((long) date * 1000);
     }
 
-    public Date getLastAccess() {
-        return lastAccess;
-    }
-
     public int getLastAccessTS() {
         return (int) (lastAccess.getTime() / 1000);
     }
 
     public boolean isFavorite() {
         return isFavorite;
+    }
+
+    public void setFavorite(int i) {
+        this.isFavorite = i != 0;
     }
 
     public void setFavorite(boolean isFavorite) {
@@ -303,6 +260,48 @@ public class Verb {
     }
 
     public void incAccessCount() {
-        this.accessCount ++;
+        this.accessCount++;
+    }
+
+    public class Tiempo {
+        protected String[] forms;
+
+        public Tiempo(String data) {
+            forms = data.split(",");
+            if (forms.length == 0) {
+                forms = new String[6];
+            }
+        }
+
+        public String toString() {
+            StringBuilder builder = new StringBuilder();
+            for (String i : forms) {
+                if (i != null) {
+                    builder.append(i);
+                } else {
+                    builder.append("-");
+                }
+                builder.append("\n");
+            }
+            return builder.toString();
+        }
+
+    }
+
+    public class TiempoCompost extends Tiempo {
+        private String base;
+
+        public TiempoCompost(String data, String base) {
+            super(data);
+            this.base = base;
+        }
+
+        public String toString() {
+            StringBuilder builder = new StringBuilder();
+            for (String i : forms) {
+                builder.append(i).append(" ").append(base).append("\n");
+            }
+            return builder.toString();
+        }
     }
 }

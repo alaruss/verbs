@@ -5,18 +5,18 @@
         <item
             android:id="@+id/nav_buy_premium"
             android:icon="@drawable/ic_menu_premium"
-            android:title="@string/nav_buy_premium"/>
+            android:title="@string/nav_buy_premium" />
         <item
             android:id="@+id/nav_preferences"
             android:icon="@drawable/ic_menu_nav_preferences"
-            android:title="@string/nav_preferences"/>
+            android:title="@string/nav_preferences" />
         <item
             android:id="@+id/nav_about"
             android:icon="@drawable/ic_menu_about"
-            android:title="@string/nav_about"/>
+            android:title="@string/nav_about" />
         <item
             android:id="@+id/nav_share"
             android:icon="@drawable/ic_menu_share"
-            android:title="@string/nav_share"/>
+            android:title="@string/nav_share" />
     </group>
 </menu>

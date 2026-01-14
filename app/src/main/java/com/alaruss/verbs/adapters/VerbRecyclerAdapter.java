@@ -19,13 +19,13 @@ public class VerbRecyclerAdapter extends RecyclerView.Adapter<VerbRecyclerAdapte
     private List<Verb> verbs;
     private OnVerbClickListener listener;
 
-    public interface OnVerbClickListener {
-        void onVerbClick(Verb verb, int position);
-    }
-
     public VerbRecyclerAdapter(OnVerbClickListener listener) {
         this.verbs = new ArrayList<>();
         this.listener = listener;
+    }
+
+    public List<Verb> getVerbs() {
+        return verbs;
     }
 
     public void setVerbs(List<Verb> newVerbs) {
@@ -65,10 +65,6 @@ public class VerbRecyclerAdapter extends RecyclerView.Adapter<VerbRecyclerAdapte
         diffResult.dispatchUpdatesTo(this);
     }
 
-    public List<Verb> getVerbs() {
-        return verbs;
-    }
-
     @NonNull
     @Override
     public VerbViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -86,6 +82,10 @@ public class VerbRecyclerAdapter extends RecyclerView.Adapter<VerbRecyclerAdapte
     @Override
     public int getItemCount() {
         return verbs.size();
+    }
+
+    public interface OnVerbClickListener {
+        void onVerbClick(Verb verb, int position);
     }
 
     class VerbViewHolder extends RecyclerView.ViewHolder {

@@ -9,6 +9,7 @@ import androidx.lifecycle.Transformations;
 import com.alaruss.verbs.db.dao.VerbRoomDao;
 import com.alaruss.verbs.db.entities.VerbEntity;
 import com.alaruss.verbs.models.Verb;
+import com.google.firebase.crashlytics.FirebaseCrashlytics;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -19,8 +20,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.zip.InflaterInputStream;
-
-import com.google.firebase.crashlytics.FirebaseCrashlytics;
 
 public class VerbRepository {
     private static final String LOG_TAG = VerbRepository.class.getSimpleName();
@@ -63,7 +62,7 @@ public class VerbRepository {
         VerbEntity entity = new VerbEntity();
         entity.setId(verb.getId());
         entity.setInfinitive(verb.getInfinitive());
-        entity.setLastAccess(verb.getLastAccess() != null ? (int)(verb.getLastAccess().getTime() / 1000) : null);
+        entity.setLastAccess(verb.getLastAccess() != null ? (int) (verb.getLastAccess().getTime() / 1000) : null);
         entity.setIsFavorite(verb.isFavorite() ? 1 : 0);
         entity.setAccessCount(verb.getAccessCount());
         entity.setData(verb.getData());
@@ -113,7 +112,7 @@ public class VerbRepository {
 
     public void updateLastAccess(Verb verb, Runnable onComplete) {
         executor.execute(() -> {
-            Integer lastAccessTS = verb.getLastAccess() != null ? (int)(verb.getLastAccess().getTime() / 1000) : null;
+            Integer lastAccessTS = verb.getLastAccess() != null ? (int) (verb.getLastAccess().getTime() / 1000) : null;
             verbDao.updateLastAccess(verb.getId(), lastAccessTS, verb.getAccessCount());
             if (onComplete != null) {
                 onComplete.run();
@@ -176,10 +175,6 @@ public class VerbRepository {
     }
 
     // Data migration methods using Room
-
-    public interface ImportProgressCallback {
-        void onProgress(Integer progress);
-    }
 
     /**
      * Migration 1: Initial data population from assets
@@ -341,5 +336,9 @@ public class VerbRepository {
             executor.shutdownNow();
             Thread.currentThread().interrupt();
         }
+    }
+
+    public interface ImportProgressCallback {
+        void onProgress(Integer progress);
     }
 }

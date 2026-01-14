@@ -10,15 +10,18 @@ import java.io.IOException;
 import java.security.GeneralSecurityException;
 
 public class PremiumManager {
-    private static final String PREF_NAME = "premium_prefs";
     public static final String PREF_IS_PREMIUM = "is_premium";
     public static final String PREF_FAVORITES_LIMIT = "favorites_limit";
     public static final String PREF_PREMIUM_INITIALIZED = "premium_initialized";
-
+    private static final String PREF_NAME = "premium_prefs";
     private static final int DEFAULT_FAVORITES_LIMIT = 42;
 
     private static volatile PremiumManager instance;
     private final SharedPreferences prefs;
+
+    private PremiumManager(Context context) {
+        prefs = createEncryptedPrefs(context);
+    }
 
     public static PremiumManager getInstance(Context context) {
         if (instance == null) {
@@ -29,10 +32,6 @@ public class PremiumManager {
             }
         }
         return instance;
-    }
-
-    private PremiumManager(Context context) {
-        prefs = createEncryptedPrefs(context);
     }
 
     private SharedPreferences createEncryptedPrefs(Context context) {

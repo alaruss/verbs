@@ -11,13 +11,8 @@ import com.alaruss.verbs.R;
 
 public class PurchaseDialogHelper {
 
-    public interface PurchaseDialogCallback {
-        void onBuyClicked();
-        void onCancelled();
-    }
-
     public static void showPurchaseDialog(Activity activity, BillingManager billingManager,
-                                           String customMessage, int favoritesLimit, PurchaseDialogCallback callback) {
+                                          String customMessage, int favoritesLimit, PurchaseDialogCallback callback) {
         View dialogView = LayoutInflater.from(activity).inflate(R.layout.dialog_purchase, null);
 
         TextView messageView = dialogView.findViewById(R.id.dialog_message);
@@ -58,8 +53,14 @@ public class PurchaseDialogHelper {
     }
 
     public static void showFavoritesLimitDialog(Activity activity, BillingManager billingManager,
-                                                  int limit, PurchaseDialogCallback callback) {
+                                                int limit, PurchaseDialogCallback callback) {
         String message = activity.getString(R.string.favorites_limit_message, limit);
         showPurchaseDialog(activity, billingManager, message, limit, callback);
+    }
+
+    public interface PurchaseDialogCallback {
+        void onBuyClicked();
+
+        void onCancelled();
     }
 }

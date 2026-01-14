@@ -41,12 +41,12 @@ public class VerbListViewModel extends AndroidViewModel {
         return filteredVerbs;
     }
 
-    public void setSearchQuery(String query) {
-        searchQuery.setValue(query != null ? query : "");
-    }
-
     public String getSearchQuery() {
         return searchQuery.getValue();
+    }
+
+    public void setSearchQuery(String query) {
+        searchQuery.setValue(query != null ? query : "");
     }
 
     private List<Verb> filterVerbs(List<Verb> verbs, String query) {

@@ -7,5 +7,5 @@
     <!-- Crown icon -->
     <path
         android:fillColor="#FFD700"
-        android:pathData="M5,16L3,5l5.5,5L12,4l3.5,6L21,5l-2,11H5zM19,19H5v-2h14v2z"/>
+        android:pathData="M5,16L3,5l5.5,5L12,4l3.5,6L21,5l-2,11H5zM19,19H5v-2h14v2z" />
 </vector>

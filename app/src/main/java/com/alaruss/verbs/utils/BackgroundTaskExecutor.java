@@ -14,18 +14,6 @@ public class BackgroundTaskExecutor {
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
     private final Handler mainThreadHandler = new Handler(Looper.getMainLooper());
 
-    public interface OnProgressListener {
-        void onProgress(int progress);
-    }
-
-    public interface BackgroundTask<T> {
-        T execute(OnProgressListener listener);
-    }
-
-    public interface OnCompleteListener<T> {
-        void onComplete(T result);
-    }
-
     public <T> void execute(
             BackgroundTask<T> task,
             OnProgressListener progressListener,
@@ -53,5 +41,17 @@ public class BackgroundTaskExecutor {
 
     public void shutdown() {
         executor.shutdown();
+    }
+
+    public interface OnProgressListener {
+        void onProgress(int progress);
+    }
+
+    public interface BackgroundTask<T> {
+        T execute(OnProgressListener listener);
+    }
+
+    public interface OnCompleteListener<T> {
+        void onComplete(T result);
     }
 }

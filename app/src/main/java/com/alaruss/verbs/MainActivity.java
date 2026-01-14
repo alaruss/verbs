@@ -7,19 +7,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import androidx.preference.PreferenceManager;
-import androidx.annotation.NonNull;
-import com.google.android.material.navigation.NavigationView;
-import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentManager;
-import androidx.fragment.app.FragmentTransaction;
-import androidx.core.view.GravityCompat;
-import androidx.drawerlayout.widget.DrawerLayout;
-import androidx.appcompat.app.ActionBarDrawerToggle;
-import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
-import androidx.activity.OnBackPressedCallback;
 import android.text.method.LinkMovementMethod;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -28,6 +15,18 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.OnBackPressedCallback;
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.ActionBarDrawerToggle;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.view.GravityCompat;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
+import androidx.lifecycle.LiveData;
+import androidx.preference.PreferenceManager;
+
 import com.alaruss.verbs.databinding.ActivityMainBinding;
 import com.alaruss.verbs.fragments.VerbListFragment;
 import com.alaruss.verbs.fragments.VerbViewFragment;
@@ -35,20 +34,21 @@ import com.alaruss.verbs.premium.BillingManager;
 import com.alaruss.verbs.premium.PremiumManager;
 import com.alaruss.verbs.premium.PurchaseDialogHelper;
 import com.alaruss.verbs.utils.BackgroundTaskExecutor;
+import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.analytics.FirebaseAnalytics;
 import com.google.firebase.crashlytics.FirebaseCrashlytics;
-
-import androidx.lifecycle.LiveData;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, VerbListFragment.VerbListFragmentListener,
         VerbViewFragment.VerbViewFragmentListener {
     private static final String LOG_TAG = MainActivity.class.getSimpleName();
-    int mCurrentVerbId = -1;
+    private static final String PREF_MIGRATION_IN_PROGRESS = "migration_in_progress";
     private final String FRAGMENT_LIST_VERB = "fragment_verb_list";
     private final String FRAGMENT_VIEW_VERB = "fragment_verb_view";
     private final String VERB_ID = "verb_id";
     private final String PREF_DATA_MIGRATION = "data_migration";
+    int mCurrentVerbId = -1;
+    ActionBarDrawerToggle mDrawerToggle;
     private MyApplication mApp;
     private FirebaseAnalytics mFirebaseAnalytics;
     private BackgroundTaskExecutor taskExecutor;
@@ -58,10 +58,6 @@ public class MainActivity extends AppCompatActivity
     private PremiumManager premiumManager;
     private LiveData<Integer> favoritesCountLiveData;
     private int currentFavoritesCount = 0;
-    private static final String PREF_MIGRATION_IN_PROGRESS = "migration_in_progress";
-
-    ActionBarDrawerToggle mDrawerToggle;
-
     private FragmentManager.OnBackStackChangedListener
             mOnBackStackChangedListener = new FragmentManager.OnBackStackChangedListener() {
         @Override

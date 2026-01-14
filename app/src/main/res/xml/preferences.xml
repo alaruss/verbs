@@ -2,20 +2,20 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <com.alaruss.verbs.MyListPreference
-        android:key="@string/pref_translationLanguage"
-        android:title="@string/pref_translationLanguage_title"
+        android:defaultValue="@string/pref_translationLanguage_default"
         android:dialogTitle="@string/pref_translationLanguage_title"
         android:entries="@array/pref_translationLanguage_entries"
         android:entryValues="@array/pref_translationLanguage_values"
-        android:defaultValue="@string/pref_translationLanguage_default"
+        android:key="@string/pref_translationLanguage"
+        android:title="@string/pref_translationLanguage_title"
         app:useSimpleSummaryProvider="false" />
 
     <com.alaruss.verbs.MyListPreference
-        android:key="pref_theme"
-        android:title="@string/pref_theme_title"
+        android:defaultValue="light"
         android:dialogTitle="@string/pref_theme_title"
         android:entries="@array/pref_theme_entries"
         android:entryValues="@array/pref_theme_values"
-        android:defaultValue="light"
+        android:key="pref_theme"
+        android:title="@string/pref_theme_title"
         app:useSimpleSummaryProvider="false" />
 </PreferenceScreen>

@@ -5,19 +5,6 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-
-import androidx.annotation.NonNull;
-import androidx.preference.PreferenceManager;
-
-import com.google.android.material.tabs.TabLayout;
-
-import androidx.fragment.app.Fragment;
-import androidx.lifecycle.ViewModelProvider;
-import androidx.viewpager.widget.PagerAdapter;
-import androidx.viewpager.widget.ViewPager;
-import androidx.appcompat.app.AlertDialog;
-
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -29,6 +16,14 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
+import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
+import androidx.preference.PreferenceManager;
+import androidx.viewpager.widget.PagerAdapter;
+import androidx.viewpager.widget.ViewPager;
+
 import com.alaruss.verbs.R;
 import com.alaruss.verbs.models.Verb;
 import com.alaruss.verbs.premium.BillingManager;
@@ -37,6 +32,7 @@ import com.alaruss.verbs.premium.PurchaseDialogHelper;
 import com.alaruss.verbs.viewmodels.VerbDetailViewModel;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
+import com.google.android.material.tabs.TabLayout;
 
 
 public class VerbViewFragment extends Fragment {
@@ -253,99 +249,6 @@ public class VerbViewFragment extends Fragment {
         }
     }
 
-    private class SectionPagerAdapter extends PagerAdapter {
-
-        SectionPagerAdapter() {
-            super();
-        }
-
-        @Override
-        public Object instantiateItem(ViewGroup collection, int position) {
-            Activity activity = getActivity();
-            if (activity == null) {
-                return new View(requireContext()); // Safeguard with context
-            }
-            LayoutInflater inflater = activity.getLayoutInflater();
-            View view;
-            if (mVerb == null) {
-                // This shouldn't be called if getCount is 0 but as a safeguard.
-                return new View(activity);
-            }
-            switch (position) {
-                case 0:
-                    view = inflater.inflate(R.layout.fragment_verb_ind_view, collection, false);
-                    ((TextView) view.findViewById(R.id.verbViewIndPresent)).setText(mVerb.getIndPresent().toString());
-                    ((TextView) view.findViewById(R.id.verbViewIndParticipi)).setText(mVerb.getParticipi());
-                    ((TextView) view.findViewById(R.id.verbViewIndImperfet)).setText(mVerb.getIndImperfet().toString());
-                    ((TextView) view.findViewById(R.id.verbViewIndGerundi)).setText(mVerb.getGerundi());
-                    ((TextView) view.findViewById(R.id.verbViewIndFutur)).setText(mVerb.getIndFutur().toString());
-                    ((TextView) view.findViewById(R.id.verbViewIndCondicional)).setText(mVerb.getIndCondicional().toString());
-                    ((TextView) view.findViewById(R.id.verbViewIndPassatSimple)).setText(mVerb.getIndPassatSimple().toString());
-                    break;
-                case 1:
-                    view = inflater.inflate(R.layout.fragment_verb_sub_view, collection, false);
-                    ((TextView) view.findViewById(R.id.verbViewSubPresent)).setText(mVerb.getSubPresent().toString());
-                    ((TextView) view.findViewById(R.id.verbViewSubImperfet)).setText(mVerb.getSubImperfet().toString());
-                    ((TextView) view.findViewById(R.id.verbViewSubImperatiu)).setText(mVerb.getImperatiu().toString());
-                    break;
-                case 2:
-                default:
-                    view = inflater.inflate(R.layout.fragment_verb_com_view, collection, false);
-                    ((TextView) view.findViewById(R.id.verbViewComPassatPerifrastic)).setText(mVerb.getComPassatPerifrastic().toString());
-                    ((TextView) view.findViewById(R.id.verbViewComPerfet)).setText(mVerb.getComPerfet().toString());
-                    ((TextView) view.findViewById(R.id.verbViewComPlusquamperfet)).setText(mVerb.getComPlusquamperfet().toString());
-                    ((TextView) view.findViewById(R.id.verbViewComPassatAnterior)).setText(mVerb.getComPassatAnterior().toString());
-                    ((TextView) view.findViewById(R.id.verbViewComPassatAnteriorPerifrastic)).setText(mVerb.getComPassatAnteriorPerifrastic().toString());
-                    ((TextView) view.findViewById(R.id.verbViewComFuturPerfet)).setText(mVerb.getComFuturPerfet().toString());
-                    ((TextView) view.findViewById(R.id.verbViewComCondicionalPerfet)).setText(mVerb.getComCondicionalPerfet().toString());
-                    ((TextView) view.findViewById(R.id.verbViewComSubPassatPerifrastic)).setText(mVerb.getComSubPassatPerifrastic().toString());
-                    ((TextView) view.findViewById(R.id.verbViewComSubPerfet)).setText(mVerb.getComSubPerfet().toString());
-                    ((TextView) view.findViewById(R.id.verbViewComSubPlusquamperfet)).setText(mVerb.getComSubPlusquamperfet().toString());
-                    ((TextView) view.findViewById(R.id.verbViewComSubPassatAnteriorPerifrastic)).setText(mVerb.getComSubPassaAnteriorPerifrastic().toString());
-                    break;
-
-            }
-            collection.addView(view, 0);
-            return view;
-        }
-
-        @Override
-        public void destroyItem(ViewGroup collection, int position, Object view) {
-            collection.removeView((View) view);
-        }
-
-        @Override
-        public boolean isViewFromObject(View view, Object object) {
-            return object == view;
-        }
-
-        @Override
-        public int getCount() {
-            return mVerb == null ? 0 : 3;
-        }
-
-        @Override
-        public CharSequence getPageTitle(int position) {
-            switch (position) {
-                case 0:
-                    return "Indicatiu";
-                case 1:
-                    return "Subjuntiu";
-                case 2:
-                default:
-                    return "Compostes";
-            }
-        }
-    }
-
-    public interface VerbViewFragmentListener {
-        void onVerbViewFinished();
-        BillingManager getBillingManager();
-        PremiumManager getPremiumManager();
-        int getFavoritesCount();
-        void onFavoriteChanged(boolean added);
-    }
-
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         super.onCreateOptionsMenu(menu, inflater);
@@ -458,6 +361,103 @@ public class VerbViewFragment extends Fragment {
     public void onDetach() {
         super.onDetach();
         mListener = null;
+    }
+
+    public interface VerbViewFragmentListener {
+        void onVerbViewFinished();
+
+        BillingManager getBillingManager();
+
+        PremiumManager getPremiumManager();
+
+        int getFavoritesCount();
+
+        void onFavoriteChanged(boolean added);
+    }
+
+    private class SectionPagerAdapter extends PagerAdapter {
+
+        SectionPagerAdapter() {
+            super();
+        }
+
+        @Override
+        public Object instantiateItem(ViewGroup collection, int position) {
+            Activity activity = getActivity();
+            if (activity == null) {
+                return new View(requireContext()); // Safeguard with context
+            }
+            LayoutInflater inflater = activity.getLayoutInflater();
+            View view;
+            if (mVerb == null) {
+                // This shouldn't be called if getCount is 0 but as a safeguard.
+                return new View(activity);
+            }
+            switch (position) {
+                case 0:
+                    view = inflater.inflate(R.layout.fragment_verb_ind_view, collection, false);
+                    ((TextView) view.findViewById(R.id.verbViewIndPresent)).setText(mVerb.getIndPresent().toString());
+                    ((TextView) view.findViewById(R.id.verbViewIndParticipi)).setText(mVerb.getParticipi());
+                    ((TextView) view.findViewById(R.id.verbViewIndImperfet)).setText(mVerb.getIndImperfet().toString());
+                    ((TextView) view.findViewById(R.id.verbViewIndGerundi)).setText(mVerb.getGerundi());
+                    ((TextView) view.findViewById(R.id.verbViewIndFutur)).setText(mVerb.getIndFutur().toString());
+                    ((TextView) view.findViewById(R.id.verbViewIndCondicional)).setText(mVerb.getIndCondicional().toString());
+                    ((TextView) view.findViewById(R.id.verbViewIndPassatSimple)).setText(mVerb.getIndPassatSimple().toString());
+                    break;
+                case 1:
+                    view = inflater.inflate(R.layout.fragment_verb_sub_view, collection, false);
+                    ((TextView) view.findViewById(R.id.verbViewSubPresent)).setText(mVerb.getSubPresent().toString());
+                    ((TextView) view.findViewById(R.id.verbViewSubImperfet)).setText(mVerb.getSubImperfet().toString());
+                    ((TextView) view.findViewById(R.id.verbViewSubImperatiu)).setText(mVerb.getImperatiu().toString());
+                    break;
+                case 2:
+                default:
+                    view = inflater.inflate(R.layout.fragment_verb_com_view, collection, false);
+                    ((TextView) view.findViewById(R.id.verbViewComPassatPerifrastic)).setText(mVerb.getComPassatPerifrastic().toString());
+                    ((TextView) view.findViewById(R.id.verbViewComPerfet)).setText(mVerb.getComPerfet().toString());
+                    ((TextView) view.findViewById(R.id.verbViewComPlusquamperfet)).setText(mVerb.getComPlusquamperfet().toString());
+                    ((TextView) view.findViewById(R.id.verbViewComPassatAnterior)).setText(mVerb.getComPassatAnterior().toString());
+                    ((TextView) view.findViewById(R.id.verbViewComPassatAnteriorPerifrastic)).setText(mVerb.getComPassatAnteriorPerifrastic().toString());
+                    ((TextView) view.findViewById(R.id.verbViewComFuturPerfet)).setText(mVerb.getComFuturPerfet().toString());
+                    ((TextView) view.findViewById(R.id.verbViewComCondicionalPerfet)).setText(mVerb.getComCondicionalPerfet().toString());
+                    ((TextView) view.findViewById(R.id.verbViewComSubPassatPerifrastic)).setText(mVerb.getComSubPassatPerifrastic().toString());
+                    ((TextView) view.findViewById(R.id.verbViewComSubPerfet)).setText(mVerb.getComSubPerfet().toString());
+                    ((TextView) view.findViewById(R.id.verbViewComSubPlusquamperfet)).setText(mVerb.getComSubPlusquamperfet().toString());
+                    ((TextView) view.findViewById(R.id.verbViewComSubPassatAnteriorPerifrastic)).setText(mVerb.getComSubPassaAnteriorPerifrastic().toString());
+                    break;
+
+            }
+            collection.addView(view, 0);
+            return view;
+        }
+
+        @Override
+        public void destroyItem(ViewGroup collection, int position, Object view) {
+            collection.removeView((View) view);
+        }
+
+        @Override
+        public boolean isViewFromObject(View view, Object object) {
+            return object == view;
+        }
+
+        @Override
+        public int getCount() {
+            return mVerb == null ? 0 : 3;
+        }
+
+        @Override
+        public CharSequence getPageTitle(int position) {
+            switch (position) {
+                case 0:
+                    return "Indicatiu";
+                case 1:
+                    return "Subjuntiu";
+                case 2:
+                default:
+                    return "Compostes";
+            }
+        }
     }
 
 }

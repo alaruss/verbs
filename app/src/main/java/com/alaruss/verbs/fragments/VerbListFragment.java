@@ -1,16 +1,8 @@
 package com.alaruss.verbs.fragments;
 
-import android.app.Activity;
 import android.content.Context;
 import android.os.Build;
 import android.os.Bundle;
-
-import androidx.annotation.NonNull;
-import androidx.fragment.app.Fragment;
-import androidx.lifecycle.ViewModelProvider;
-import androidx.recyclerview.widget.DividerItemDecoration;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.KeyEvent;
@@ -22,8 +14,14 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
-import android.widget.EditText;
 import android.widget.TextView;
+
+import androidx.annotation.NonNull;
+import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
+import androidx.recyclerview.widget.DividerItemDecoration;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.alaruss.verbs.R;
 import com.alaruss.verbs.adapters.VerbRecyclerAdapter;
@@ -33,9 +31,6 @@ import com.alaruss.verbs.premium.PremiumManager;
 import com.alaruss.verbs.viewmodels.VerbListViewModel;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
-
-import java.util.ArrayList;
-import java.util.List;
 
 
 public class VerbListFragment extends Fragment {
@@ -74,7 +69,7 @@ public class VerbListFragment extends Fragment {
         if (searchItem != null) {
             searchItem.setVisible(false);
         }
-        if (favoriteItem != null ){
+        if (favoriteItem != null) {
             favoriteItem.setVisible(false);
         }
     }
@@ -191,7 +186,7 @@ public class VerbListFragment extends Fragment {
                         binding.searchList.setText("");
                         return true;
                     } else if (event.getRawX() <= rightEdgeOfLeftDrawable) {
-                        if (binding.searchList.getText().length()>0 && mAdapter.getItemCount()>0) {
+                        if (binding.searchList.getText().length() > 0 && mAdapter.getItemCount() > 0) {
                             onVerbSelected(0);
                         }
                         return true;
@@ -296,6 +291,7 @@ public class VerbListFragment extends Fragment {
 
     public interface VerbListFragmentListener {
         void onVerbListSelected(int verbId);
+
         PremiumManager getPremiumManager();
     }
 }

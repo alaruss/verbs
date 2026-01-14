@@ -23,20 +23,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class BillingManager implements PurchasesUpdatedListener {
-    private static final String TAG = "BillingManager";
     public static final String PRODUCT_ID_PREMIUM = "premium_unlock";
-
+    private static final String TAG = "BillingManager";
     private final Context context;
     private final PremiumManager premiumManager;
     private BillingClient billingClient;
     private ProductDetails premiumProductDetails;
     private PurchaseCallback purchaseCallback;
-
-    public interface PurchaseCallback {
-        void onPurchaseSuccess();
-        void onPurchaseFailed(String error);
-        void onPurchaseCancelled();
-    }
 
     public BillingManager(Context context) {
         this.context = context.getApplicationContext();
@@ -88,7 +81,7 @@ public class BillingManager implements PurchasesUpdatedListener {
         billingClient.queryProductDetailsAsync(params, new ProductDetailsResponseListener() {
             @Override
             public void onProductDetailsResponse(@NonNull BillingResult billingResult,
-                                                  @NonNull List<ProductDetails> productDetailsList) {
+                                                 @NonNull List<ProductDetails> productDetailsList) {
                 if (billingResult.getResponseCode() == BillingClient.BillingResponseCode.OK) {
                     for (ProductDetails details : productDetailsList) {
                         if (PRODUCT_ID_PREMIUM.equals(details.getProductId())) {
@@ -111,7 +104,7 @@ public class BillingManager implements PurchasesUpdatedListener {
                 new PurchasesResponseListener() {
                     @Override
                     public void onQueryPurchasesResponse(@NonNull BillingResult billingResult,
-                                                          @NonNull List<Purchase> purchases) {
+                                                         @NonNull List<Purchase> purchases) {
                         if (billingResult.getResponseCode() == BillingClient.BillingResponseCode.OK) {
                             for (Purchase purchase : purchases) {
                                 if (purchase.getPurchaseState() == Purchase.PurchaseState.PURCHASED) {
@@ -247,5 +240,13 @@ public class BillingManager implements PurchasesUpdatedListener {
         if (billingClient != null) {
             billingClient.endConnection();
         }
+    }
+
+    public interface PurchaseCallback {
+        void onPurchaseSuccess();
+
+        void onPurchaseFailed(String error);
+
+        void onPurchaseCancelled();
     }
 }

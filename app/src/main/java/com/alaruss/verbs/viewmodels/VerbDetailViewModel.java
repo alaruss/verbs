@@ -1,14 +1,13 @@
 package com.alaruss.verbs.viewmodels;
 
 import android.app.Application;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Transformations;
-
-import android.util.Log;
 
 import com.alaruss.verbs.db.VerbRepository;
 import com.alaruss.verbs.models.Verb;
@@ -34,13 +33,13 @@ public class VerbDetailViewModel extends AndroidViewModel {
         });
     }
 
-    public void setVerbId(int id) {
-        verbId.setValue(id);
-    }
-
     public int getVerbId() {
         Integer id = verbId.getValue();
         return id != null ? id : 0;
+    }
+
+    public void setVerbId(int id) {
+        verbId.setValue(id);
     }
 
     public LiveData<Verb> getVerb() {

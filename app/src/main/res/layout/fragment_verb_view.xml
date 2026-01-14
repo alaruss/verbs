@@ -1,31 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-                xmlns:ads="http://schemas.android.com/apk/res-auto"
-                xmlns:tools="http://schemas.android.com/tools"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                tools:context="com.alaruss.verbs.fragments.VerbViewFragment">
+    xmlns:ads="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.alaruss.verbs.fragments.VerbViewFragment">
 
 
     <com.google.android.material.tabs.TabLayout
         android:id="@+id/tab_layout"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"/>
+        android:layout_height="wrap_content" />
+
     <TextView
         android:id="@+id/translation_text"
         style="@style/TranslationTextView"
-        android:textAlignment="center"
         android:layout_below="@+id/tab_layout"
-        android:drawableRight="@android:drawable/ic_menu_edit"
         android:drawableEnd="@android:drawable/ic_menu_edit"
-        />
+        android:drawableRight="@android:drawable/ic_menu_edit"
+        android:textAlignment="center" />
 
     <androidx.viewpager.widget.ViewPager
         android:id="@+id/tab_pager"
-        android:layout_below="@id/translation_text"
-        android:layout_above="@+id/adView"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"/>
+        android:layout_height="match_parent"
+        android:layout_above="@+id/adView"
+        android:layout_below="@id/translation_text" />
 
     <com.google.android.gms.ads.AdView
         android:id="@+id/adView"
