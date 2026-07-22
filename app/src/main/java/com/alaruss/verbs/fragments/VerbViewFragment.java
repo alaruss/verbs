@@ -21,8 +21,9 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.preference.PreferenceManager;
-import androidx.viewpager.widget.PagerAdapter;
-import androidx.viewpager.widget.ViewPager;
+import androidx.recyclerview.widget.RecyclerView;
+import androidx.viewpager2.widget.ViewPager2;
+import com.google.android.material.tabs.TabLayoutMediator;
 
 import com.alaruss.verbs.R;
 import com.alaruss.verbs.models.Verb;
@@ -42,7 +43,7 @@ public class VerbViewFragment extends Fragment {
     private TextView mTranslateView;
     private int starDrawable, starInactiveDrawable;
     private SectionPagerAdapter mAdapter;
-    private ViewPager mViewPager;
+    private ViewPager2 mViewPager;
     private AdView mAdView;
     private boolean adLoaded = false;
     private boolean lastKnownPremiumStatus = false;
@@ -135,10 +136,12 @@ public class VerbViewFragment extends Fragment {
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_verb_view, container, false);
         TabLayout tabLayout = (TabLayout) view.findViewById(R.id.tab_layout);
-        mViewPager = (ViewPager) view.findViewById(R.id.tab_pager);
+        mViewPager = (ViewPager2) view.findViewById(R.id.tab_pager);
         mAdapter = new SectionPagerAdapter();
         mViewPager.setAdapter(mAdapter);
-        tabLayout.setupWithViewPager(mViewPager);
+        new TabLayoutMediator(tabLayout, mViewPager,
+                (tab, position) -> tab.setText(mAdapter.getPageTitle(position))
+        ).attach();
         mTranslateView = (TextView) view.findViewById(R.id.translation_text);
         mTranslateView.setText(getTranslationText());
         mTranslateView.setOnTouchListener(new View.OnTouchListener() {
@@ -375,78 +378,47 @@ public class VerbViewFragment extends Fragment {
         void onFavoriteChanged(boolean added);
     }
 
-    private class SectionPagerAdapter extends PagerAdapter {
+    private class SectionPagerAdapter extends RecyclerView.Adapter<SectionPagerAdapter.ViewHolder> {
 
         SectionPagerAdapter() {
             super();
         }
 
         @Override
-        public Object instantiateItem(ViewGroup collection, int position) {
-            Activity activity = getActivity();
-            if (activity == null) {
-                return new View(requireContext()); // Safeguard with context
-            }
-            LayoutInflater inflater = activity.getLayoutInflater();
+        public int getItemViewType(int position) {
+            return position;
+        }
+
+        @NonNull
+        @Override
+        public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+            LayoutInflater inflater = LayoutInflater.from(parent.getContext());
             View view;
-            if (mVerb == null) {
-                // This shouldn't be called if getCount is 0 but as a safeguard.
-                return new View(activity);
-            }
-            switch (position) {
+            switch (viewType) {
                 case 0:
-                    view = inflater.inflate(R.layout.fragment_verb_ind_view, collection, false);
-                    ((TextView) view.findViewById(R.id.verbViewIndPresent)).setText(mVerb.getIndPresent().toString());
-                    ((TextView) view.findViewById(R.id.verbViewIndParticipi)).setText(mVerb.getParticipi());
-                    ((TextView) view.findViewById(R.id.verbViewIndImperfet)).setText(mVerb.getIndImperfet().toString());
-                    ((TextView) view.findViewById(R.id.verbViewIndGerundi)).setText(mVerb.getGerundi());
-                    ((TextView) view.findViewById(R.id.verbViewIndFutur)).setText(mVerb.getIndFutur().toString());
-                    ((TextView) view.findViewById(R.id.verbViewIndCondicional)).setText(mVerb.getIndCondicional().toString());
-                    ((TextView) view.findViewById(R.id.verbViewIndPassatSimple)).setText(mVerb.getIndPassatSimple().toString());
+                    view = inflater.inflate(R.layout.fragment_verb_ind_view, parent, false);
                     break;
                 case 1:
-                    view = inflater.inflate(R.layout.fragment_verb_sub_view, collection, false);
-                    ((TextView) view.findViewById(R.id.verbViewSubPresent)).setText(mVerb.getSubPresent().toString());
-                    ((TextView) view.findViewById(R.id.verbViewSubImperfet)).setText(mVerb.getSubImperfet().toString());
-                    ((TextView) view.findViewById(R.id.verbViewSubImperatiu)).setText(mVerb.getImperatiu().toString());
+                    view = inflater.inflate(R.layout.fragment_verb_sub_view, parent, false);
                     break;
                 case 2:
                 default:
-                    view = inflater.inflate(R.layout.fragment_verb_com_view, collection, false);
-                    ((TextView) view.findViewById(R.id.verbViewComPassatPerifrastic)).setText(mVerb.getComPassatPerifrastic().toString());
-                    ((TextView) view.findViewById(R.id.verbViewComPerfet)).setText(mVerb.getComPerfet().toString());
-                    ((TextView) view.findViewById(R.id.verbViewComPlusquamperfet)).setText(mVerb.getComPlusquamperfet().toString());
-                    ((TextView) view.findViewById(R.id.verbViewComPassatAnterior)).setText(mVerb.getComPassatAnterior().toString());
-                    ((TextView) view.findViewById(R.id.verbViewComPassatAnteriorPerifrastic)).setText(mVerb.getComPassatAnteriorPerifrastic().toString());
-                    ((TextView) view.findViewById(R.id.verbViewComFuturPerfet)).setText(mVerb.getComFuturPerfet().toString());
-                    ((TextView) view.findViewById(R.id.verbViewComCondicionalPerfet)).setText(mVerb.getComCondicionalPerfet().toString());
-                    ((TextView) view.findViewById(R.id.verbViewComSubPassatPerifrastic)).setText(mVerb.getComSubPassatPerifrastic().toString());
-                    ((TextView) view.findViewById(R.id.verbViewComSubPerfet)).setText(mVerb.getComSubPerfet().toString());
-                    ((TextView) view.findViewById(R.id.verbViewComSubPlusquamperfet)).setText(mVerb.getComSubPlusquamperfet().toString());
-                    ((TextView) view.findViewById(R.id.verbViewComSubPassatAnteriorPerifrastic)).setText(mVerb.getComSubPassaAnteriorPerifrastic().toString());
+                    view = inflater.inflate(R.layout.fragment_verb_com_view, parent, false);
                     break;
-
             }
-            collection.addView(view, 0);
-            return view;
+            return new ViewHolder(view);
         }
 
         @Override
-        public void destroyItem(ViewGroup collection, int position, Object view) {
-            collection.removeView((View) view);
+        public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
+            holder.bind(position);
         }
 
         @Override
-        public boolean isViewFromObject(View view, Object object) {
-            return object == view;
-        }
-
-        @Override
-        public int getCount() {
+        public int getItemCount() {
             return mVerb == null ? 0 : 3;
         }
 
-        @Override
         public CharSequence getPageTitle(int position) {
             switch (position) {
                 case 0:
@@ -456,6 +428,46 @@ public class VerbViewFragment extends Fragment {
                 case 2:
                 default:
                     return "Compostes";
+            }
+        }
+
+        class ViewHolder extends RecyclerView.ViewHolder {
+            ViewHolder(View itemView) {
+                super(itemView);
+            }
+
+            void bind(int position) {
+                if (mVerb == null) return;
+                switch (position) {
+                    case 0:
+                        ((TextView) itemView.findViewById(R.id.verbViewIndPresent)).setText(mVerb.getIndPresent().toString());
+                        ((TextView) itemView.findViewById(R.id.verbViewIndParticipi)).setText(mVerb.getParticipi());
+                        ((TextView) itemView.findViewById(R.id.verbViewIndImperfet)).setText(mVerb.getIndImperfet().toString());
+                        ((TextView) itemView.findViewById(R.id.verbViewIndGerundi)).setText(mVerb.getGerundi());
+                        ((TextView) itemView.findViewById(R.id.verbViewIndFutur)).setText(mVerb.getIndFutur().toString());
+                        ((TextView) itemView.findViewById(R.id.verbViewIndCondicional)).setText(mVerb.getIndCondicional().toString());
+                        ((TextView) itemView.findViewById(R.id.verbViewIndPassatSimple)).setText(mVerb.getIndPassatSimple().toString());
+                        break;
+                    case 1:
+                        ((TextView) itemView.findViewById(R.id.verbViewSubPresent)).setText(mVerb.getSubPresent().toString());
+                        ((TextView) itemView.findViewById(R.id.verbViewSubImperfet)).setText(mVerb.getSubImperfet().toString());
+                        ((TextView) itemView.findViewById(R.id.verbViewSubImperatiu)).setText(mVerb.getImperatiu().toString());
+                        break;
+                    case 2:
+                    default:
+                        ((TextView) itemView.findViewById(R.id.verbViewComPassatPerifrastic)).setText(mVerb.getComPassatPerifrastic().toString());
+                        ((TextView) itemView.findViewById(R.id.verbViewComPerfet)).setText(mVerb.getComPerfet().toString());
+                        ((TextView) itemView.findViewById(R.id.verbViewComPlusquamperfet)).setText(mVerb.getComPlusquamperfet().toString());
+                        ((TextView) itemView.findViewById(R.id.verbViewComPassatAnterior)).setText(mVerb.getComPassatAnterior().toString());
+                        ((TextView) itemView.findViewById(R.id.verbViewComPassatAnteriorPerifrastic)).setText(mVerb.getComPassatAnteriorPerifrastic().toString());
+                        ((TextView) itemView.findViewById(R.id.verbViewComFuturPerfet)).setText(mVerb.getComFuturPerfet().toString());
+                        ((TextView) itemView.findViewById(R.id.verbViewComCondicionalPerfet)).setText(mVerb.getComCondicionalPerfet().toString());
+                        ((TextView) itemView.findViewById(R.id.verbViewComSubPassatPerifrastic)).setText(mVerb.getComSubPassatPerifrastic().toString());
+                        ((TextView) itemView.findViewById(R.id.verbViewComSubPerfet)).setText(mVerb.getComSubPerfet().toString());
+                        ((TextView) itemView.findViewById(R.id.verbViewComSubPlusquamperfet)).setText(mVerb.getComSubPlusquamperfet().toString());
+                        ((TextView) itemView.findViewById(R.id.verbViewComSubPassatAnteriorPerifrastic)).setText(mVerb.getComSubPassaAnteriorPerifrastic().toString());
+                        break;
+                }
             }
         }
     }

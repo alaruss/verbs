@@ -2,7 +2,6 @@ package com.alaruss.verbs;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
-import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -12,6 +11,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -52,7 +52,8 @@ public class MainActivity extends AppCompatActivity
     private MyApplication mApp;
     private FirebaseAnalytics mFirebaseAnalytics;
     private BackgroundTaskExecutor taskExecutor;
-    private ProgressDialog mProgressDialog;
+    private AlertDialog mProgressDialog;
+    private ProgressBar mProgressBar;
     private ActivityMainBinding binding;
     private BillingManager billingManager;
     private PremiumManager premiumManager;
@@ -121,7 +122,7 @@ public class MainActivity extends AppCompatActivity
                 R.string.navigation_drawer_open, R.string.navigation_drawer_close);
 
         mDrawerToggle.setToolbarNavigationClickListener(v -> getOnBackPressedDispatcher().onBackPressed());
-        binding.drawerLayout.setDrawerListener(mDrawerToggle);
+        binding.drawerLayout.addDrawerListener(mDrawerToggle);
 
         getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
             @Override
@@ -216,13 +217,16 @@ public class MainActivity extends AppCompatActivity
         SharedPreferences prefs = getSharedPreferences(getPackageName(), Activity.MODE_PRIVATE);
         prefs.edit().putInt(PREF_MIGRATION_IN_PROGRESS, migrationNumber).commit(); // Use commit() for immediate write
 
-        // Show progress dialog
-        mProgressDialog = new ProgressDialog(MainActivity.this);
-        mProgressDialog.setMax(100);
-        mProgressDialog.setTitle("Updating data...");
-        mProgressDialog.setProgress(0);
-        mProgressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-        mProgressDialog.setCancelable(false); // Prevent dismissal during migration
+        // Show progress dialog replacement
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_progress, null);
+        mProgressBar = dialogView.findViewById(R.id.progress_bar);
+        TextView titleView = dialogView.findViewById(R.id.progress_title);
+        titleView.setText("Updating data...");
+
+        mProgressDialog = new AlertDialog.Builder(this)
+                .setView(dialogView)
+                .setCancelable(false)
+                .create();
         mProgressDialog.show();
 
         taskExecutor.execute(
@@ -237,8 +241,8 @@ public class MainActivity extends AppCompatActivity
                 },
                 progress -> {
                     // Progress update on main thread
-                    if (mProgressDialog != null) {
-                        mProgressDialog.setProgress(progress);
+                    if (mProgressBar != null) {
+                        mProgressBar.setProgress(progress);
                     }
                 },
                 result -> {
@@ -251,6 +255,7 @@ public class MainActivity extends AppCompatActivity
                     if (mProgressDialog != null) {
                         mProgressDialog.dismiss();
                         mProgressDialog = null;
+                        mProgressBar = null;
                     }
                     migrateDataAndStart();
                 }

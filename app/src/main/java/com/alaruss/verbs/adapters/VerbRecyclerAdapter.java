@@ -99,8 +99,12 @@ public class VerbRecyclerAdapter extends RecyclerView.Adapter<VerbRecyclerAdapte
         public void bind(final Verb verb, final int position) {
             titleTextView.setText(verb.getInfinitive());
             itemView.setOnClickListener(v -> {
-                if (listener != null) {
-                    listener.onVerbClick(verb, position);
+                // Resolve the current position at click time. DiffUtil may shift a
+                // surviving row without re-binding it, so a captured position can go
+                // stale (e.g. when the list narrows to a single result).
+                int pos = getBindingAdapterPosition();
+                if (listener != null && pos != RecyclerView.NO_POSITION) {
+                    listener.onVerbClick(verbs.get(pos), pos);
                 }
             });
         }
